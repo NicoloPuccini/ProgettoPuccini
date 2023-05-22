@@ -267,6 +267,34 @@ bool AGameField::IsNodeValidForWalk(ABaseNode* Node)
 	return true;
 }
 
+bool AGameField::IsEatable(ABaseFood* Food) 
+{
+	if (Food->Eaten == true) return false;
+	else return true;
+}
+//Funzione che nasconde il food sotto al Gamefield
+void AGameField::HideFood(ABaseFood* Food)  
+{
+	FVector NewFoodLocation = Food->GetActorLocation()-FVector(0,0,400);
+	Food->SetActorLocation(NewFoodLocation);
+	
+}
+//Funzione "inversa" della HideFood riporta il food sopra al GameField
+void AGameField::RestoreFood(ABaseFood* Food)
+{
+	
+	FVector NewFoodLocation = Food->GetActorLocation();
+	
+	//Controllo se l'asset è stato nasconsto andando a controllare la sua coordinata Z 
+	if (NewFoodLocation.Z == -380) 
+	{
+		//Se è stato nascosto lo riporto sul GameField
+		NewFoodLocation.Z=NewFoodLocation.Z + 400;
+		Food->SetActorLocation(NewFoodLocation);
+	}
+	
+}
+
 //Serve a trovare Il prossimo nodo sul percorso di un Pawn conoscendo le coordinate X,Y del Pawn e la sua direzione 
 ABaseNode* AGameField::GetNextNode(const FVector2D StartCoords, FVector InputDir)
 {
@@ -297,6 +325,11 @@ ABaseNode* AGameField::GetNextNode(const FVector2D StartCoords, FVector InputDir
 	return PossibleNode;
 }
 
+//Funzione che prende il food associato ad un nodo
+ABaseFood* AGameField::GetFood(ABaseNode* Node) {
+	ABaseFood* TargetFood = GetFoodMAp()[Node];
+	return TargetFood;
+}
 
 //Restituisce un Fvector2D dato un Fvector
 FVector2D AGameField::GetFVector2DFromFVector3D(FVector Vector3D)

@@ -12,5 +12,5 @@ AEnergyFood::AEnergyFood()
 	FoodGridPosition = FVector2D(0, 0);
 	FoodRealPosition = FVector(0);
 	//E setto inizialmente Eaten a false 
-	Eaten = true;
+	Eaten = false;
 }

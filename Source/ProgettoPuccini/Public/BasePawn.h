@@ -2,7 +2,7 @@
 
 #pragma once
 
-
+#include "MyGameInstance.h"
 #include "BaseNode.h"
 #include "GameField.h"
 #include "CoreMinimal.h"
@@ -17,6 +17,10 @@ class PROGETTOPUCCINI_API ABasePawn : public APawn
 	GENERATED_BODY()
 
 public:
+
+	//Passo una reference della GameInstance
+	UMyGameInstance* GameInstance;
+
 	// Sets default values for this pawn's properties
 	ABasePawn();
 
@@ -42,7 +46,7 @@ private:
 	void SetLastValidDirection(FVector Dir);
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
-		float CurrentMovementSpeed = 100.0f;
+		float CurrentMovementSpeed = 400.0f;
 	UPROPERTY(EditAnywhere)
 		float AcceptedDistance = 4.f;
 
@@ -62,6 +66,7 @@ private:
 	void SetTargetNode(ABaseNode* Node);
 	void SetNextNode(ABaseNode* Node);
 	void SetNodeGeneric(const FVector Dir);
+	void Eat();
 protected:
 	UPROPERTY(VisibleAnywhere)
 		class AMyGameMode* GameMode;

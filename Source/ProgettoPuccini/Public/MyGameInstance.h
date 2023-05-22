@@ -14,4 +14,16 @@ class PROGETTOPUCCINI_API UMyGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(EditAnywhere)
+		int32 Score = 0 ;
+
+	UPROPERTY(EditAnywhere)
+	int32 Lives=3;
+
+	void AddToScore(int32 points);
+
+	UFUNCTION(BlueprintCallable)
+		int32 GetScore();
+
 };

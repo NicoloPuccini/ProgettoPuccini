@@ -50,9 +50,15 @@ public:
 	//Controlla se il nodo è NOTWALKABLE , o se il nodo è vuoto , in tal caso ritorna false , altrimenti ritorna true
 	static bool IsNodeValidForWalk(class ABaseNode* Node);
 
+	//Controlla se il food è Eatable 
+	static bool IsEatable(class ABaseFood* Food);
+
+	//La funzione che uso per nascondere l'asset del food una volta mangiato 
+	void HideFood(class ABaseFood* Food);
+	void RestoreFood(class ABaseFood* Food);
 	//Restituise il prossimo nodo data una posizione X,Y e una direzione , ritorna null se il prossimo nodo è fuori dalla mappa 
 	ABaseNode* GetNextNode(const FVector2D StartCoords, FVector InputDir);
-
+	ABaseFood* GetFood(ABaseNode* Node);
 	//Restituisce un Fvector2D dato un Fvector
 	FVector2D GetFVector2DFromFVector3D(FVector Vector3D);
 

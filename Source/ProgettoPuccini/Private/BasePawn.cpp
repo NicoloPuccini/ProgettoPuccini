@@ -14,17 +14,20 @@ ABasePawn::ABasePawn()
 	PrimaryActorTick.bCanEverTick = true;
 	//// Set this pawn to be controlled by the lowest-numbered player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	
 	//// vettore di direzione inizializzato con zero (il pawn non si muove allo start del gioco fino a che non
 	//   viene premuto uno dei tasti W-A-S-D )
 	LastInputDirection = FVector(0, 0, 0);
-	LastValidInputDirection = FVector(0, 0, 0);
+	LastValidInputDirection = FVector(0, -1, 0);
 	////posizione iniziale  del pawn nelle coordinate di griglia (1,1)
-	CurrentGridCoords = FVector2D(1, 1);
+	CurrentGridCoords = FVector2D(5, 14);
 	//// nodi
 	LastNode = nullptr;  //L'ultimo nodo in cui si è trovato il pawn
 	TargetNode = nullptr; //Il nodo in cui il pawn sta per spostarsi 
 	NextNode = nullptr; // Il prossimo nodo nella direzione in cui sta andando il Pawn
-
+	
+	
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +36,11 @@ void ABasePawn::BeginPlay()
 	Super::BeginPlay();
 	GameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
 	TheGridGen = GameMode->GField;
+	//Get the GameInstance reference 
+	//<----------------------------------------------------------------------------------------------------------------------------------------------------------Reference alla GameInstance da definire
+	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
+	
 	//// posizione iniziale del pawn (è quella del PlayerStart)
 	FVector2D StartNode = TheGridGen->GetXYPositionByRelativeLocation(GetActorLocation());
 	LastNode = TheGridGen->TileMap[StartNode];
@@ -76,7 +84,7 @@ void ABasePawn::HandleMovement()
 		SetNodeGeneric(LastValidInputDirection);
 	}
 }
-
+//--------------------------------MOVIMENTO DEL Pawn in una nuova casella -------------------------------------------------
 void ABasePawn::MoveToCurrentTargetNode()
 {
 	//Se TargetNode è null non faccio niente ed esco dalla funzione  
@@ -102,9 +110,36 @@ void ABasePawn::MoveToCurrentTargetNode()
 	SetActorLocation(Location);
 }
 
+//----------------------------------------------------Pacman EAT ---------------------------------------------------------------------------------
+void ABasePawn::Eat() {
+	if (TargetNode == nullptr) return;
+	//Prendo il food legato al nodo
+	//const auto Node = GameMode->GField->GetNextNode(Coords, InputDir);
+	const auto TargetFood = GameMode->GField->GetFood(TargetNode);
+	//Controllo se posso mangiarlo 
+	//if (TheGridGen->IsNodeValidForWalk(TheGridGen->GetNextNode(CurrentGridCoords, LastInputDirection)))
+	if (TheGridGen->IsEatable(TargetFood)) 
+	{
+		//Ora che so che il food è mangiabile posso contrassegnarlo come mangiato (Settando Eaten a true ) 
+		TargetFood->SetFoodEaten(true);
+		//<-------------------------------------------------------------------------------------------------------------------------------------------Qua c'è da fare il meccanismo per ottenere punti 
+		//Ora posso "rimuoverlo" dal GameField , in realtà lo nascondo sotto il GameField 
+
+		TheGridGen->HideFood(TargetFood);
+		
+	}
+
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 //Quando il Pawn raggiunge il TargetNode
 void ABasePawn::OnNodeReached()
 {
+	//Mangia quello che si trova nel Node 
+	Eat();
+
 	//Aggiorna gli attributi del Pawn di conseguenza
 	CurrentGridCoords = TargetNode->GetGridPosition();
 	LastNode = TargetNode;

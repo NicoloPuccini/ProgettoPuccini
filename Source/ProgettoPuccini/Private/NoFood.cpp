@@ -12,5 +12,5 @@ ANoFood::ANoFood()
 	FoodGridPosition = FVector2D(0, 0);
 	FoodRealPosition = FVector(0);
 	//E setto inizialmente Eaten a true perchè non dovrà mai essere mangiato ne cambiare  
-	Eaten = false;
+	Eaten = true;
 }
