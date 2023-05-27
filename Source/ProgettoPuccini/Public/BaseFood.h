@@ -22,6 +22,8 @@ public:
 	//Un metodo per settare se un Food è stato mangiato
 	void SetFoodEaten(bool YesNo);
 
+	//Una funzione che restituisce i punti che si guadagnano mangiando quel food 
+	int32 GetPointsFromFood();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

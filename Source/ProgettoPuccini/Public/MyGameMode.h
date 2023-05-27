@@ -2,7 +2,7 @@
 
 #pragma once
 
-
+#include "Blinky.h"
 #include "GameField.h"
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
@@ -20,23 +20,19 @@ public:
 	//Serve per creare il GameField
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<AGameField> GameFieldClass;
+
 	// reference to a GameField object
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		AGameField* GField;
 
-	/*//Serve per creare la Camera
-	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<ACamera> CameraClass;
-	// reference to a GameField object
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		ACamera* Cam;*/
+	//Per legare Blinky al suo Blueprint
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Phantom")
+		TSubclassOf<ABlinky> BlinkyClass;
 
-		/*	UPROPERTY(EditDefaultsOnly)
-				TSubclassOf<APacmanPawn> PacmanClass;
-			// reference to a GameField object
-			UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-				APacmanPawn* Pacman;
-			*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		ABlinky* Blinky;
+
 
 			//Dichiarazione del metodo costruttore della MyGameMode
 	AMyGameMode();

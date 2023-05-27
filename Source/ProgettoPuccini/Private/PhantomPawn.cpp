@@ -1,37 +1,37 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "BasePawn.h"
+#include "PhantomPawn.h"
 #include "MyGameMode.h"
 
 //COSTRUTTORE di BasePawn
-ABasePawn::ABasePawn()
+APhantomPawn::APhantomPawn()
 {
 	// N.B il pawn viene spawnato automaticamente nella posizione del player start
 	// dato che il pawn di default è stato impostato nei setting come BP_GridPawn
 	//  
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	//// Set this pawn to be controlled by the lowest-numbered player
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
-
 	
+
+
 	//// vettore di direzione inizializzato con zero (il pawn non si muove allo start del gioco fino a che non
 	//   viene premuto uno dei tasti W-A-S-D )
-	LastInputDirection = FVector(0, 0, 0);
-	LastValidInputDirection = FVector(0, -1, 0);
-	////posizione iniziale  del pawn nelle coordinate di griglia (1,1)
+	
+	//LastInputDirection = FVector(0, 0, 0);
+	LastValidInputDirection = FVector(0, 0, 0);
+	////posizione iniziale  del pawn nelle coordinate di griglia 
 	CurrentGridCoords = FVector2D(5, 14);
 	//// nodi
 	LastNode = nullptr;  //L'ultimo nodo in cui si è trovato il pawn
 	TargetNode = nullptr; //Il nodo in cui il pawn sta per spostarsi 
 	NextNode = nullptr; // Il prossimo nodo nella direzione in cui sta andando il Pawn
-	
-	
+
+
 }
 
 // Called when the game starts or when spawned
-void ABasePawn::BeginPlay()
+void APhantomPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	GameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
@@ -39,23 +39,23 @@ void ABasePawn::BeginPlay()
 	//Get the GameInstance reference 
 	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
-	
-	//// posizione iniziale del pawn (è quella del PlayerStart)
+
+	////<-------------------------------------------------------------------------------------------------------------------------------Dove come perchè Spawno il fantasmino
 	FVector2D StartNode = TheGridGen->GetXYPositionByRelativeLocation(GetActorLocation());
 	LastNode = TheGridGen->TileMap[StartNode];
 }
 
 // Called every frame
 //Il Tick è un metodo che viene chiamato ad ogni frame e che noi sfrutteremo per far muovere gli oggetti nel campo nda gioco
-void ABasePawn::Tick(float DeltaTime)
+void APhantomPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//Chiamiamo la funzione che definiamo qua sotto e che serve a gestire il movimento e velocità dei Pawn nel campo da gioco
-	ABasePawn::HandleMovement();
+	APhantomPawn::HandleMovement();
 }
 
 //Setta il TargetNode sulla base del NextNode 
-void ABasePawn::HandleMovement()
+void APhantomPawn::HandleMovement()
 {
 	MoveToCurrentTargetNode();
 
@@ -74,17 +74,17 @@ void ABasePawn::HandleMovement()
 	if (!TargetNode && !NextNode)
 	{
 		//Se il prossimo nodo nella direzione inserita LastInputDirection è WALKABLE 
-		if (TheGridGen->IsNodeValidForWalk(TheGridGen->GetNextNode(CurrentGridCoords, LastInputDirection)))
+		if (TheGridGen->IsNodeValidForWalk(TheGridGen->GetNextNode(CurrentGridCoords, /*LastInputDirection*/ FVector(1,0,0)))) //<---------------Qua si mette la nuova direzione che il fantama prende 
 		{
 			//Setto LastValidDirection = LastInputDirection 
-			SetLastValidDirection(LastInputDirection);
+			//SetLastValidDirection(LastInputDirection);<------------------------------------------------------------------------------------------e anche qua 
 		}
 		//Se il prossimo nodo nella direzione data è WALKABLE diventa il TargetNode
 		SetNodeGeneric(LastValidInputDirection);
 	}
 }
 //--------------------------------MOVIMENTO DEL Pawn in una nuova casella -------------------------------------------------
-void ABasePawn::MoveToCurrentTargetNode()
+void APhantomPawn::MoveToCurrentTargetNode()
 {
 	//Se TargetNode è null non faccio niente ed esco dalla funzione  
 	if (TargetNode == nullptr) return;
@@ -110,7 +110,7 @@ void ABasePawn::MoveToCurrentTargetNode()
 }
 
 //----------------------------------------------------Pacman EAT ---------------------------------------------------------------------------------
-void ABasePawn::Eat() {
+void APhantomPawn::Eat() {
 	if (TargetNode == nullptr) return;
 	//Prendo il food legato al nodo
 	//const auto Node = GameMode->GField->GetNextNode(Coords, InputDir);
@@ -128,8 +128,8 @@ void ABasePawn::Eat() {
 			//DEBUG:
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("PointsEarned : =%d "), TargetFood->GetPointsFromFood()));
 
-        GameInstance->AddToScore(TargetFood->GetPointsFromFood());
-		
+		GameInstance->AddToScore(TargetFood->GetPointsFromFood());
+
 		//Ora posso "rimuoverlo" dal GameField , in realtà lo nascondo sotto il GameField 
 		TheGridGen->HideFood(TargetFood);
 
@@ -141,7 +141,7 @@ void ABasePawn::Eat() {
 
 
 //Quando il Pawn raggiunge il TargetNode
-void ABasePawn::OnNodeReached()
+void APhantomPawn::OnNodeReached()
 {
 	//Mangia quello che si trova nel Node 
 	Eat();
@@ -172,18 +172,18 @@ void ABasePawn::OnNodeReached()
 	}
 }
 
-void ABasePawn::SetTargetNode(ABaseNode* Node)
+void APhantomPawn::SetTargetNode(ABaseNode* Node)
 {
 	TargetNode = Node;
 }
 
-void ABasePawn::SetNextNode(ABaseNode* Node)
+void APhantomPawn::SetNextNode(ABaseNode* Node)
 {
 	NextNode = Node;
 }
 
 //Setta in nodo con Il getNextNode se è WALKABLE
-void ABasePawn::SetNodeGeneric(const FVector Dir)
+void APhantomPawn::SetNodeGeneric(const FVector Dir)
 {
 	const auto Node = TheGridGen->GetNextNode(CurrentGridCoords, Dir);
 	if (TheGridGen->IsNodeValidForWalk(Node))
@@ -192,39 +192,94 @@ void ABasePawn::SetNodeGeneric(const FVector Dir)
 	}
 }
 
-//La funzione che quando clicki su una tile ti stampa a schermo le coordinate  
-void ABasePawn::OnClick()
-{
-	FHitResult Hit = FHitResult(ForceInit);
-	GetWorld()->GetFirstPlayerController()->GetHitResultUnderCursor(ECollisionChannel::ECC_Pawn, true, Hit);
-	if (ABaseNode* CurrTile = Cast<ABaseNode>(Hit.GetActor()))
-	{
-		FVector2D CurrCoords = CurrTile->GetGridPosition();
-		//Stampa a schermo la posizione della tile su cui hai clickato 
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Position x=%f  Y=%f "), CurrCoords.X, CurrCoords.Y));
-	}
 
-}
-
-void ABasePawn::SetVerticalInput(float AxisValue)
+//<-----------------------------------------------------------------------------------------------------------------------------------------Va sostituita
+void APhantomPawn::SetVerticalInput(float AxisValue)
 {
+	/*
 	if (AxisValue == 0) return;
 	const FVector Dir = (GetActorForwardVector() * AxisValue).GetSafeNormal();
 	LastInputDirection = Dir.GetSafeNormal();
 	SetNextNodeByDir(LastInputDirection);
+	*/
 }
-
-void ABasePawn::SetHorizontalInput(float AxisValue)
+//<-------------------------------------------------------------------------------------------------------------------------------------------Va sostituita 
+void APhantomPawn::SetHorizontalInput(float AxisValue)
 {
+	/*
 	if (AxisValue == 0) return;
 	const FVector Dir = (GetActorRightVector() * AxisValue).GetSafeNormal();
 	LastInputDirection = Dir;
 	SetNextNodeByDir(LastInputDirection);
+	*/
 }
-
-void ABasePawn::SetNextNodeByDir(FVector InputDir)
+//<-----------------------------------------------------------------CrossingDetection---------------------------------------------------------------------------------------------------------
+bool APhantomPawn::CrossingDetection()
 {
-	const FVector2D Coords = TargetNode ? TargetNode->GetGridPosition() : LastNode->GetGridPosition();
+	//Questa funzione serve a controllare se il Fantasma si trova in un incrocio , da true se è ad un incrocio false altrimenti 
+	int count = 0;
+	FVector AllDir[] = { FVector(0,1,0),FVector(1,0,0), FVector(0,-1,0),FVector(-1,0,0) };
+	for (FVector PossibleDir : AllDir) {
+		//Escludo la direzione attuale del fantasma e la sua opposta (visto che non possono fare dietrofront )
+		if (PossibleDir != LastValidInputDirection && PossibleDir != LastValidInputDirection * (-1))
+		{
+			//Prendo il prossimo nodo in quella direzione 
+			auto Node = GameMode->GField->GetNextNode(CurrentGridCoords, PossibleDir);
+			//Verifico che il nodo sia walkable 
+			if (GameMode->GField->IsNodeValidForWalk(Node)) 
+			{
+				count = count + 1;
+			}
+		}
+	}
+	if (count != 0) { return true; }
+	return false ;
+}
+//<----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------ChoseNewDirection-----------------------------------------------------------------------------------------------
+FVector APhantomPawn::ChoseNewDirection()
+{
+	TMap<  FVector , float> DirectionAndDistanceMap;
+	FVector AllDir[] = { FVector(0,1,0),FVector(1,0,0), FVector(0,-1,0),FVector(-1,0,0) };
+	int32 Min = 0;//2147483647; //Ci metto il massimo numero contenibile in un int32 <-------------------------------------------------------------------Occhio qua !
+	for (FVector PossibleDir : AllDir) {
+		//Escludo la direzione opposta all'attuale del fantasma (visto che non possono fare dietrofront )
+		if ( PossibleDir != LastValidInputDirection * (-1))
+		{
+			//Prendo il prossimo nodo in quella direzione 
+			auto Node = GameMode->GField->GetNextNode(CurrentGridCoords, PossibleDir);
+			//Verifico che il nodo sia walkable 
+			if (GameMode->GField->IsNodeValidForWalk(Node))
+			{
+			  //Calcolo la distanza fra il nodo e WhereImGoing (mi basta il quadrato , non è necessario fare anche la radice ) 
+				int32 Dist = 0; // FMath::Pow((Node->GetGridPosition() - WhereImGoing), 2);<--------------------------------------------------------Usa Dist2D che usa sopra !!!
+			//Mi calcolo il minimo fra le distanze 
+				if (Dist < Min) 
+				{
+					Min = Dist;
+				}
+				//Aggiungo la distanza e la possigleDir alla TMap DirectionAndDistanceMap
+				DirectionAndDistanceMap.Add( PossibleDir, Dist);
+			}
+		}
+	}
+	//Rimuovo dal TMap quelli con distanza diversa dal minimo 
+	for (auto& KeyValue : DirectionAndDistanceMap)
+	{
+		FVector dir = KeyValue.Key;
+		float dist = KeyValue.Value;
+		if (dist != Min) 
+		{
+         
+		}//<---------------------------------------------------------------------------------------------------------------Da completare !
+	}
+	
+	return FVector(0, 0, 0);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void APhantomPawn::SetNextNodeByDir(FVector InputDir)
+{
+	const FVector2D Coords = TargetNode ? TargetNode->GetGridPosition() : LastNode->GetGridPosition();//<-----------------------------------------------------------Cosa significa questa sintassi ?
 	const auto Node = GameMode->GField->GetNextNode(Coords, InputDir);
 	if (GameMode->GField->IsNodeValidForWalk(Node))
 	{
@@ -233,12 +288,12 @@ void ABasePawn::SetNextNodeByDir(FVector InputDir)
 	}
 }
 
-FVector ABasePawn::GetLastValidDirection() const
+FVector APhantomPawn::GetLastValidDirection() const
 {
 	return LastValidInputDirection;
 }
 
-void ABasePawn::SetLastValidDirection(FVector Dir)
+void APhantomPawn::SetLastValidDirection(FVector Dir)
 {
 	if (Dir == FVector::ZeroVector) return;
 	LastValidInputDirection = Dir;

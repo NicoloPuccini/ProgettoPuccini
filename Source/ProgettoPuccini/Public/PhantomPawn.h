@@ -7,12 +7,12 @@
 #include "GameField.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "BasePawn.generated.h"
+#include "PhantomPawn.generated.h"
 
 
 
 UCLASS()
-class PROGETTOPUCCINI_API ABasePawn : public APawn
+class PROGETTOPUCCINI_API APhantomPawn : public APawn
 {
 	GENERATED_BODY()
 
@@ -22,7 +22,7 @@ public:
 	UMyGameInstance* GameInstance;
 
 	// Sets default values for this pawn's properties
-	ABasePawn();
+	APhantomPawn();
 
 	//Dichiariamo metodi e Attributi :
 
@@ -38,8 +38,8 @@ private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, Category = "Movement")
-		FVector LastInputDirection;
+	//UPROPERTY(VisibleAnywhere, Category = "Movement")
+	//	FVector LastInputDirection;
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
 		FVector LastValidInputDirection;
 
@@ -59,7 +59,28 @@ private:
 		ABaseNode* TargetNode;
 	UPROPERTY(VisibleAnywhere, Category = "Nodes")
 		ABaseNode* LastNode;
+public:
+	//Sarà il nodo che il fantasma cercherà di raggiungere inseguendo Pacman , Cambia durante la partita (Sulla Griglia)
+	UPROPERTY(VisibleAnywhere, Category = "Phantom")
+		FVector2D WhereImGoing ;
 
+	//La posizione in cui spawna il fantasmino è fissa ma cambia da fantasma a fantasma  (Sulla Griglia)
+	UPROPERTY(VisibleAnywhere, Category = "Phantom")
+		FVector SpawnPosition;
+
+	//La posiione del nodo che i fantasmini cercano di raggiungere quando sono in modalità scatter, è fissa , ma cambia da fantasma a fantasma (Sulla Griglia)
+	UPROPERTY(VisibleAnywhere, Category = "Phantom")
+		 FVector2D SpecialSpotPosition;
+
+	//Le funzioni dei fantasmi :
+	
+	//Controlla che il fantasma sia ad un'incrocio
+	bool CrossingDetection();
+
+	//Sceglie la nuova direzione da percorrere in base a WhereImGoing
+	FVector ChoseNewDirection();
+
+	//Le funzioni da Pawn
 	void HandleMovement();
 	void OnNodeReached();
 	void MoveToCurrentTargetNode();
@@ -76,8 +97,7 @@ protected:
 		AGameField* TheGridGen;
 
 public:
-	UFUNCTION()
-		void OnClick();
+	
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

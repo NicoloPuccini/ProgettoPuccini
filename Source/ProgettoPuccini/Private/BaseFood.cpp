@@ -40,3 +40,7 @@ void ABaseFood::Tick(float DeltaTime)
 
 }
 
+int32 ABaseFood::GetPointsFromFood()
+{
+	return Points;
+}

@@ -1,5 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+#include "Blinky.h"
 #include "MyGameMode.h"
 #include "MyPlayerController.h"
 #include "EngineUtils.h"
@@ -46,20 +46,24 @@ void AMyGameMode::BeginPlay()
 	}
 
 	//-------------------------------------------SPAWN DELLA CAMERA--------------------------------------------------------------------------------------------------
-	//Fa spawnare un actor all'interno del mondo , in questo caso Camera è la nostra telecamera
-	//Setto dove posiziono la telecamera 
-	/*float CameraPosX = ((GField->NodeSize * GField->MapSizeX) / 2) - (GField->NodeSize / 2);
-	float CameraPosY = ((GField->NodeSize * GField->MapSizeY ) / 2) - (GField->NodeSize / 2);
-	*/
-
-
-	/*
-		FVector CameraPos(100.0f, 100.0f, 1000.0f);
-
-		Cam = GetWorld()->SpawnActor<ACamera>(CameraClass, CameraPos, FRotationMatrix::MakeFromX(FVector(0, 0, -1)).Rotator());*/
+//La camera Component è contenuta nel Blueprint del GameMode
 
 		//-------------------------------------------SPAWN DI PACMANPAN---------------------------------------------------------------------------------------------------
+//	Viene Spawnato in automatico essendo il Pawn posseduto dal Player , la sua posizione di spawn è dettata dal PlayerStart (PlaceActor-->Basic-->PlayerStart) 
+	//-----------------------------------------------SPAWN DEI FANTASMI-----------------------------------------------------------------------------------------------------
 
+	//Spawn di Blinky 
+	// auto* Blinky = GetWorld()->SpawnActor<ABlinky>(FVector(), FRotator());
+	//Blinky->SetActorLocationAndRotation(Blinky->SpawnPosition, FRotationMatrix::MakeFromX(FVector(0, 1, 0)).Rotator());
+	
+	//Node = GetWorld()->SpawnActor<ABaseNode>(ClassToSpawn, Position, FRotator::ZeroRotator);
+	if (BlinkyClass != nullptr) {
 
-
+		Blinky = GetWorld()->SpawnActor<ABlinky>(BlinkyClass, FVector(550, 1450, 5), FRotationMatrix::MakeFromX(FVector(0, 0, 0)).Rotator());
+	}
+	else
+	{
+		//Se il GameField non è stato creato è un errore e lo lanciamo così :
+		UE_LOG(LogTemp, Error, TEXT("Blinky is null"));
+	}
 }

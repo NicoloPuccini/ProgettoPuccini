@@ -186,6 +186,7 @@ void AGameField::GenerateFood()
 			SpawnedFood->FoodGridPosition = (FVector2D(x, y));
 			// assegna le coordinate spaziali alla tile
 			SpawnedFood->FoodRealPosition = CurrentSpawnPosition;
+		
 			// aggiungo alle strutture dati il riferimento alla tile creata
 			FoodGrid.Add(SpawnedFood);
 			//Vado a prendermi il nodo su cui faccio spawnare la Tile 

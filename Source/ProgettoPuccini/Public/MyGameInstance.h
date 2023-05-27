@@ -21,9 +21,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 Lives=3;
 
+	UPROPERTY(EditAnywhere)
+		int32 Level = 0;
+
 	void AddToScore(int32 points);
 
 	UFUNCTION(BlueprintCallable)
 		int32 GetScore();
-
+	
 };
