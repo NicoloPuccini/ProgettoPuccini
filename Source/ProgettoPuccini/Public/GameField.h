@@ -38,6 +38,10 @@ public:
 
 
 	//METODI public :
+	// 
+	//Questa funzione serve a ottenere la posizione sulla griglia data la posizione dell'attore nel mondo 
+	FVector2D GetXYPositionByRealLocation(FVector Location) const ;
+	
 	//Dichiaro un metodo che restituisce la posizione reale nel campo da gioco data quella relativa (x,y)
 	FVector GetRelativeLocationByXYPosition(const int32 InX, const int32 InY);
 
@@ -62,16 +66,89 @@ public:
 	//Restituisce un Fvector2D dato un Fvector
 	FVector2D GetFVector2DFromFVector3D(FVector Vector3D);
 
+	//Funzioni per recuperare la SpawnLocation di Pacman
+	FVector GetPacmanSpawn()const;
+
+	//Funzioni per recuperare le SpawnLocation dei fantasmi 
+	FVector GetBlinkySpawn()const;
+	FVector GetInkySpawn()const;
+	FVector GetPinkySpawn()const;
+	FVector GetClydeSpawn()const;
+
+	//La funzione che ritorna la location di ExitNode (Serve ai fantasmi per uscire di casa )
+	FVector GetExitNodeLocation()const;
+
+	//Le funzioni che ritornano la location del SpecialSpot
+	FVector GetBlinkySpecialSpotLocation()const;
+	FVector GetPinkySpecialSpotLocation()const;
+	FVector GetInkySpecialSpotLocation()const;
+	FVector GetClydeSpecialSpotLocation()const;
+
+	//Funzioni per recuperare le location dei teleport 
+	FVector GetRightTeleportLocation()const;
+	FVector GetLeftTeleportLocation()const;
+	
+	//Funzione per recuperare le locatiotion dei TunnelNode
+	TArray<FVector> GetTunnelNodeLocations() const;
+
 private:
 	//Dichiariamo gli ATTRIBUTI private :
+	// 
+	//Contiene la spawn location di Pacman
+	UPROPERTY(EditAnywhere, Category = "Pacman")
+		FVector PacmanSpawnLocation;
 
+	//Contiene la spawn location di Blinky(red)
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		 FVector BlinkySpawnLocation;
+	//Contiene la location del SpecialSpot di Blinky(il punto che cerca di raggiungere in modalità scatter )
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+	FVector BlinkySpecialSpotLocation;
+
+
+	//Contiene la spawn location di Inky(blue)
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		 FVector InkySpawnLocation;
+	//Contiene la location del SpecialSpot di Inky(il punto che cerca di raggiungere in modalità scatter )
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		FVector InkySpecialSpotLocation;
+
+	//Contiene la spawn location di Pinky(pink)
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		 FVector PinkySpawnLocation;
+	//Contiene la location del SpecialSpot di Pinky(il punto che cerca di raggiungere in modalità scatter )
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		FVector PinkySpecialSpotLocation;
+
+	//Contiene la spawn location di Clyde(Orange)
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		 FVector ClydeSpawnLocation;
+	//Contiene la location del SpecialSpot di Clyde(il punto che cerca di raggiungere in modalità scatter )
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		FVector ClydeSpecialSpotLocation;
+
+	//Contiene le location di tutti i tunnel Node (Usato nel PhantomPawn per rallentare i fantasmi )
+	UPROPERTY(EditAnywhere, Category = "Tunnel")
+	TArray<FVector> TunnelNodeLocations;
+	//Contiene la location del Teleport destro
+	UPROPERTY(EditAnywhere, Category = "Teleport")
+		FVector RightTeleportLocation;
+	//Contiene la location del Teleport Sinistro
+	UPROPERTY(EditAnywhere, Category = "Teleport")
+		FVector LeftTeleportLocation;
+	//E' la casella prima del Gate viene usata dai fantsmi per uscire di casa 
+	UPROPERTY(EditAnywhere, Category = "Ghosts")
+		FVector ExitNodeLocation;
+	
 	//Questo servirà per generare i WallNode
 	UPROPERTY(EditDefaultsOnly, Category = "Nodes")
 		TSubclassOf<ABaseNode> WallNode;
 	//Questo servirà per generare i WalkNode
 	UPROPERTY(EditDefaultsOnly, Category = "Nodes")
 		TSubclassOf<ABaseNode> WalkNode;
-
+	//Questo servirà per generare i WalkNode
+	UPROPERTY(EditDefaultsOnly, Category = "Nodes")
+		TSubclassOf<ABaseNode> GateNode;
 	//Questo servirà per generare i Foodie
 	UPROPERTY(EditDefaultsOnly, Category = "Foods")
 		TSubclassOf<ABaseFood> Foodie;
@@ -92,7 +169,7 @@ private:
 
 	//METODI private :
 	//Dichiariamo un metodo per spawnare i Nodi da usare dentro GenerateGrid
-	ABaseNode* SpawnNodeActorById(char CharId, FVector Position) const;
+	ABaseNode* SpawnNodeActorById(char CharId, FVector Position) ;
 	//Dichiaro un metodo per far spawnare i Food da usare dentro GenerateFood
 	ABaseFood* SpawnFoodActorById(char CharId, FVector Position) const;
 	//Dichiaro un metodo per generare la griglia di gioco Grid

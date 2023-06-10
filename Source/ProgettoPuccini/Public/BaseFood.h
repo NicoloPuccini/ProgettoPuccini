@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
+#include "Kismet/GameplayStatics.h"
+#include "MyGameInstance.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BaseFood.generated.h"
@@ -15,6 +16,9 @@ public:
 	// Sets default values for this actor's properties
 	ABaseFood();
 
+	//La funzione che verrà overload da tutti i food pe capire quali sono fodie e quali energyFood per decrementare il FoodieCounter
+	virtual void DecrementFoodieCounter();
+	
 	//Metodi per la posizione del Food 
 	FVector2D GetFoodGridPosition();
 	void SetFoodGridPosition(const double InX, const double InY);
@@ -31,6 +35,9 @@ protected:
 public:
 	//ATTRIBUTI di BaseFood :
 
+	
+
+
 	//Il punteggio che si guadagna mangiando il Food 
 	UPROPERTY(EditAnywhere)
 		int32 Points;
@@ -43,7 +50,10 @@ public:
 	//Un attributo per tener conto della posizione del food nel mondo di gioco 
 	UPROPERTY(EditAnywhere)
 		FVector FoodRealPosition;
-
+protected:
+	//Passo una reference della GameInstance
+	UPROPERTY(VisibleAnywhere)
+		UMyGameInstance* GameInstance;
 
 
 

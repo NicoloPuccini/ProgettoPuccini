@@ -3,24 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BaseFood.h"
-#include "Foodie.generated.h"
+#include "BaseNode.h"
+#include "GateNode.generated.h"
 
 /**
- *
+ * 
  */
 UCLASS()
-class PROGETTOPUCCINI_API AFoodie : public ABaseFood
+class PROGETTOPUCCINI_API AGateNode : public ABaseNode
 {
 	GENERATED_BODY()
 public:
-	AFoodie();
-
-	//Funzione che decrementa il contatore dei foodie e delle EnergyFood ancora da mangiare 
-	void DecrementFoodieCounter() override;
-
-
+	AGateNode();
 protected:
+
+	//Attributi di Wall Node oltre a quelli ereditati dal BaseNode :
 	//L'attributo puntatore al Blueprint
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;

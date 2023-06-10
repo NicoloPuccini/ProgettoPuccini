@@ -15,3 +15,9 @@ AFoodie::AFoodie()
 	//E setto inizialmente Eaten a false 
 	Eaten = false;
 }
+
+void AFoodie::DecrementFoodieCounter()
+{
+	//Decremento di 1 il foodieCounter
+	GameInstance->SetFoodieCounter(GameInstance->GetFoodieCounter() - 1);
+}

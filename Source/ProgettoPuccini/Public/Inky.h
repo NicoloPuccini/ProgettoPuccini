@@ -1,37 +1,36 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
+#include "Blinky.h"
 #include "CoreMinimal.h"
 #include "PhantomPawn.h"
-#include "Blinky.generated.h"
+#include "Inky.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROGETTOPUCCINI_API ABlinky : public APhantomPawn
+class PROGETTOPUCCINI_API AInky : public APhantomPawn
 {
 	GENERATED_BODY()
-
 public:
-	ABlinky();
+	AInky();
 
 	int32 GetGhostCounter() override;
 	void IncrementGhostCounter() override;
 	void ResetGhostCounter() override;
 
-public:
+private:
 	//L'attributo puntatore al Blueprint
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;
 
 	UPROPERTY(EditAnywhere)
-		int32 BlinkyCounter;
+	int32 InkyCounter;
 
+	//Passo una reference del BasePawn
+	ABlinky* Blinky;
+public:
 	void WhereAmIGoingUpdate() override;
-    void LoadSpecialSpot() override ;
-
-
-
+	void LoadSpecialSpot() override;
 };

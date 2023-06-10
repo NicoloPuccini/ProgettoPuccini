@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
+
+
+#include"BasePawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "MyGameInstance.h"
 #include "BaseNode.h"
@@ -9,6 +12,21 @@
 #include "GameFramework/Pawn.h"
 #include "PhantomPawn.generated.h"
 
+UENUM()
+enum EPhantomStatus {
+	CHASE UMETA(DisplayName = "CHASE"),
+	SCATTER UMETA(DisplayName = "SCATTER"),
+	FRIGHTENED UMETA(DisplayName = "FRIGHTENED")
+};
+
+UENUM()
+enum  EMooveset {    //<--------------------------------------Sbarella di brutto se cambi l'ordine dell'enum , PERCHé??????
+	
+	
+	ATHOUSE UMETA(DisplayName = "ATHOUSE"),
+	EXITHOUSE UMETA(DisplayName = "EXITHOUSE"),
+	NORMAL UMETA(DisplayName = "NORMAL")
+};
 
 
 UCLASS()
@@ -18,40 +36,104 @@ class PROGETTOPUCCINI_API APhantomPawn : public APawn
 
 public:
 
-	//Passo una reference della GameInstance
-	UMyGameInstance* GameInstance;
-
 	// Sets default values for this pawn's properties
 	APhantomPawn();
 
+
+	//La funzioni che gestiscono il ghost counter limit
+	int32 GetGhostCounterLimit();
+	void SetGhostCounterLimit(int32 Limit);
+
+	//Funzioni che gestiscono i contatori dei fantasmini (Ogni fantasmino la impementa in modo diverso )
+	virtual int32 GetGhostCounter() ;
+	virtual void IncrementGhostCounter();
+	virtual void ResetGhostCounter();
+	void CheckGhostCounter();
+	
+
+	//Funzioni sullo stato del fantasma 
+	TEnumAsByte<EPhantomStatus> GetGhostStatus();
+	void SetGhostStatus(const TEnumAsByte<EPhantomStatus> Status);
+
+	// Funzioni sul Mooveset dei fantasmi
+		TEnumAsByte<EMooveset> GetGhostMooveset();
+	void SetGhostMooveset(const TEnumAsByte<EMooveset>  Behavior);
+
+
+	//Funzione che carica alcuni attributi dentro i fantasmi 
+	  virtual void LoadSpecialSpot();
+
+	  //Serve a tenere nota della posizione di Pacman e a far muovere i fantasmi di conseguenza 
+	  FVector2D CheckPacmanGridPosition();
+	  FVector CheckPacmanDirection();
+
+	  //Questa è la funzione che aggiorna WhereAmIGoing tutte le volte che sono ad un incrocio (Ogni fantasma la definisce in modo diverso )
+	  virtual void WhereAmIGoingUpdate();
+
+
 	//Dichiariamo metodi e Attributi :
 
-	void SetVerticalInput(float AxisValue);
-	void SetHorizontalInput(float AxisValue);
+	//<------------------------------------------------------------------------------------------------------Da cancellare i fantasmi non prendono input da tastiera 
+	//void SetVerticalInput(float AxisValue);
+	//void SetHorizontalInput(float AxisValue);
 
 	UFUNCTION(BlueprintCallable)
 		void SetNextNodeByDir(FVector InputDir);
 
-	FVector GetLastValidDirection() const;
-	//<-----------------------------------------------------------------Ho cambiato da protected a private
-private:
+	FVector From2To3SizeVector(FVector2D input);
+
+	FVector2D GetSpecialSpotPosition();
+	FVector2D GetWhereImGoing();
+	FVector GetCurrentDirection() const;
+	FVector2D GetGridPosition() const;
+
+protected:
+
+	
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	//UPROPERTY(VisibleAnywhere, Category = "Movement")
 	//	FVector LastInputDirection;
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
-		FVector LastValidInputDirection;
+		FVector CurrentDirection;
+	//La direzione che seguono i fantasmi quando sono dentro la casa 
+	UPROPERTY(VisibleAnywhere, Category = "Movement")
+	    FVector HouseDirection;
+	void SetCurrentDirection(FVector Dir);
 
-	void SetLastValidDirection(FVector Dir);
-
+	//Velocità dei ghost
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float CurrentMovementSpeed = 400.0f;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float GhostTunnelSpeed ;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float GhostSpeed;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float FrightGhostSpeed;
+
 	UPROPERTY(EditAnywhere)
 		float AcceptedDistance = 4.f;
 
 	UPROPERTY(VisibleAnywhere)
 		FVector2D CurrentGridCoords;
+
+	//Stato del fantasma : Scatter,Chase,Frightened
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category = "Phantom")
+		TEnumAsByte<EPhantomStatus> GhostStatus;
+	//Mooveset del fantasma : NORMAL , INHOUSE , EXITHOUSE
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Phantom")
+		TEnumAsByte<EMooveset> Mooveset;
+
+	//Il limite al contatore personale di ogni fantasma , oltre il quale il fantasma esce di casa 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Phantom")
+		int32 GhostCounterLimit;
+
+	//Serve a tenere conto della prima volta che reggiugi un nodo in modalità scatter per invertire la direzione solo la prima volta 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Phantom")
+		bool DirectionInvercted=false;
+
 
 	UPROPERTY(VisibleAnywhere, Category = "Nodes")
 		ABaseNode* NextNode;
@@ -59,21 +141,24 @@ private:
 		ABaseNode* TargetNode;
 	UPROPERTY(VisibleAnywhere, Category = "Nodes")
 		ABaseNode* LastNode;
-public:
+
 	//Sarà il nodo che il fantasma cercherà di raggiungere inseguendo Pacman , Cambia durante la partita (Sulla Griglia)
 	UPROPERTY(VisibleAnywhere, Category = "Phantom")
 		FVector2D WhereImGoing ;
-
-	//La posizione in cui spawna il fantasmino è fissa ma cambia da fantasma a fantasma  (Sulla Griglia)
-	UPROPERTY(VisibleAnywhere, Category = "Phantom")
-		FVector SpawnPosition;
 
 	//La posiione del nodo che i fantasmini cercano di raggiungere quando sono in modalità scatter, è fissa , ma cambia da fantasma a fantasma (Sulla Griglia)
 	UPROPERTY(VisibleAnywhere, Category = "Phantom")
 		 FVector2D SpecialSpotPosition;
 
 	//Le funzioni dei fantasmi :
+
+	//Funzioni sulla velocità dei fantasmi :
+	void SetCurrentMovementSpeed(float NewSpeed);
+	float GetCurrentMovementSpeed();
+	void SetSpeeds();
 	
+	//Controlla se il fantasma si trova in uno dei due tunnel 
+	void TunnelCheck();
 	//Controlla che il fantasma sia ad un'incrocio
 	bool CrossingDetection();
 
@@ -88,13 +173,24 @@ public:
 	void SetNextNode(ABaseNode* Node);
 	void SetNodeGeneric(const FVector Dir);
 	void Eat();
+
 protected:
+
 	UPROPERTY(VisibleAnywhere)
 		class AMyGameMode* GameMode;
+
+	//Passo una reference della GameInstance
+	UPROPERTY(VisibleAnywhere)
+	UMyGameInstance* GameInstance;
 
 
 	UPROPERTY(VisibleAnywhere)
 		AGameField* TheGridGen;
+
+	//Passo una reference del BasePawn
+	UPROPERTY(VisibleAnywhere)
+	ABasePawn* Pacman;
+
 
 public:
 	
@@ -102,4 +198,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
+private: 
+	static class DirectionAndDistance {
+	public:
+		FVector Direction;
+		float Distance;
+	};
 };

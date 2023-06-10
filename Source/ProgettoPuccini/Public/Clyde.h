@@ -4,34 +4,30 @@
 
 #include "CoreMinimal.h"
 #include "PhantomPawn.h"
-#include "Blinky.generated.h"
+#include "Clyde.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROGETTOPUCCINI_API ABlinky : public APhantomPawn
+class PROGETTOPUCCINI_API AClyde : public APhantomPawn
 {
 	GENERATED_BODY()
-
 public:
-	ABlinky();
+	AClyde();
 
 	int32 GetGhostCounter() override;
 	void IncrementGhostCounter() override;
 	void ResetGhostCounter() override;
 
-public:
+protected:
 	//L'attributo puntatore al Blueprint
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;
 
 	UPROPERTY(EditAnywhere)
-		int32 BlinkyCounter;
+	int32 ClydeCounter;
 
 	void WhereAmIGoingUpdate() override;
-    void LoadSpecialSpot() override ;
-
-
-
+	void LoadSpecialSpot() override;
 };

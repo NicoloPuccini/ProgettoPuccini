@@ -8,12 +8,18 @@ ABaseFood::ABaseFood()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	
+}
 
+void ABaseFood::DecrementFoodieCounter()
+{
 }
 
 FVector2D ABaseFood::GetFoodGridPosition()
 {
 	return FoodGridPosition;
+	
 }
 
 void ABaseFood::SetFoodGridPosition(const double InX, const double InY)
@@ -23,6 +29,7 @@ void ABaseFood::SetFoodGridPosition(const double InX, const double InY)
 
 void ABaseFood::SetFoodEaten(bool YesNo)
 {
+
 	Eaten = YesNo;
 }
 
@@ -30,7 +37,7 @@ void ABaseFood::SetFoodEaten(bool YesNo)
 void ABaseFood::BeginPlay()
 {
 	Super::BeginPlay();
-
+	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 }
 
 // Called every frame

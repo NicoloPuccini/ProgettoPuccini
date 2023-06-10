@@ -19,7 +19,7 @@ AGameField::AGameField()
 	MapSizeX = 30;
 	// la y contiene 28 elementi (+ il carattere di fine stringa)
 	MapSizeY = 29;
-
+	
 }
 
 // Called when the game starts or when spawned
@@ -29,6 +29,7 @@ void AGameField::BeginPlay()
 	//Quando spawna il GameField chiamiamo la funzione che genera la Grid e fa spawnare tutti i nodi 
 	GenerateGrid();
 	GenerateFood();
+	
 }
 
 // Called every frame
@@ -65,7 +66,7 @@ constexpr int MapSizeY = 29;
 // space - WalkNode
 
 static char Map[MapSizeX][MapSizeY] = {
-	"############################",
+	"4##########################3",
 	"#            ##            #",
 	"# #### ##### ## ##### #### #",
 	"# #### ##### ## ##### #### #",
@@ -78,11 +79,11 @@ static char Map[MapSizeX][MapSizeY] = {
 	"###### ##### ## ##### ######",
 	"###### ##          ## ######",
 	"###### ## ######## ## ######",
-	"###### ## #      # ## ######",
-	"          #      #          ",
-	"###### ## #      # ## ######",
-	"###### ## ###  ### ## ######",
-	"###### ##          ## ######",
+	"###### ## #I  H C# ## ######",
+	"ZTTTTT    #      #    TTTTTX",
+	"###### ## #  E   # ## ######",
+	"###### ## ###--### ## ######",
+	"###### ##    B     ## ######",
 	"###### ## ######## ## ######",
 	"###### ## ######## ## ######",
 	"#            ##            #",
@@ -94,7 +95,7 @@ static char Map[MapSizeX][MapSizeY] = {
 	"# #######    ##    ####### #",
 	"# ########## ## ########## #",
 	"#                          #",
-	"############################",
+	"2##########################1",
 };
 static char FMap[MapSizeX][MapSizeY] = {
 	"############################",
@@ -128,6 +129,7 @@ static char FMap[MapSizeX][MapSizeY] = {
 	"#..........................#",
 	"############################",
 };
+
 
 
 //Definiamo la funzione che Genera la Grid a tutti gli effetti 
@@ -197,11 +199,108 @@ void AGameField::GenerateFood()
 	}
 }
 
-ABaseNode* AGameField::SpawnNodeActorById(char CharId, FVector Position) const
+ABaseNode* AGameField::SpawnNodeActorById(char CharId, FVector Position) 
 {
 	ABaseNode* Node;
 	TSubclassOf<ABaseNode> ClassToSpawn = ABaseNode::StaticClass();
-
+	//BIHC sono le spawn location dei fantasmi (Pinky H)
+	if (CharId == 'E')
+	{
+		//Location di un TunnelNode (Dove i fantasmi sono rallentati ) 
+		ClassToSpawn = WalkNode;
+		ExitNodeLocation=Position;
+	}
+	if (CharId == 'T')
+	{
+		//Location di un TunnelNode (Dove i fantasmi sono rallentati ) 
+		ClassToSpawn = WalkNode;
+		TunnelNodeLocations.Add( Position);
+	}
+	else
+	if (CharId == '-')
+	{
+		//Location del teleport destro 
+		ClassToSpawn = GateNode;
+		
+	}
+	else
+	if (CharId == 'X')
+	{
+		//Location del teleport destro 
+		ClassToSpawn = WalkNode;
+		RightTeleportLocation = Position;
+	}
+	else
+	if (CharId == 'Z')
+		{
+			//Location del teleport sinistro 
+			ClassToSpawn = WalkNode;
+			LeftTeleportLocation = Position;
+		}
+		else
+	if (CharId == '1')
+			{
+				//Location del SpecialSpot(il suo target di default in scatter) di blinky
+				ClassToSpawn = WallNode;
+				BlinkySpecialSpotLocation = Position;
+			}
+	else
+	if (CharId == '2')
+				{
+					//Location del SpecialSpot(il suo target di default in scatter) di Pinky
+					ClassToSpawn = WallNode;
+					PinkySpecialSpotLocation = Position;
+				}
+	else
+	if (CharId == '3')
+					{
+						//Location del SpecialSpot(il suo target di default in scatter) di Inky
+						ClassToSpawn = WallNode;
+						InkySpecialSpotLocation = Position;
+					}
+	else
+	if (CharId == '4')
+						{
+							//Location del SpecialSpot(il suo target di default in scatter) di Clyde
+							ClassToSpawn = WallNode;
+							ClydeSpecialSpotLocation = Position;
+						}
+	else
+	if (CharId == 'B')
+	{
+		//Location di spawn di blinky
+		ClassToSpawn = WalkNode;
+		BlinkySpawnLocation = Position;
+	}
+	else	
+	if (CharId == 'I')
+	{
+		//Location di spawn di Inky
+		ClassToSpawn = WalkNode;
+		InkySpawnLocation = Position;
+	}
+	else
+	if (CharId == 'H')
+			{
+				//Location di spawn di Pinky
+				ClassToSpawn = WalkNode;
+				PinkySpawnLocation = Position;
+			}
+	else
+	if (CharId == 'C')
+				{
+					//Location di spawn di Clyde
+					ClassToSpawn = WalkNode;
+					ClydeSpawnLocation = Position;
+				}
+	else
+	if (CharId == 'P')
+	{
+		//Punto di spawn del Pacman
+		ClassToSpawn = WalkNode;
+		PacmanSpawnLocation = Position;
+	}
+	else 
 	if (CharId == '#')
 	{
 		ClassToSpawn = WallNode;
@@ -226,11 +325,11 @@ ABaseFood* AGameField::SpawnFoodActorById(char CharId, FVector Position) const
 		ClassToSpawn = Foodie;
 	}
 	else
-		if (CharId == 'E')
+	if (CharId == 'E')
 		{
 			ClassToSpawn = EnergyFood;
 		}
-		else
+	else
 		{
 			//Altrimenti è un WalkNode
 			ClassToSpawn = NoFood;
@@ -240,7 +339,17 @@ ABaseFood* AGameField::SpawnFoodActorById(char CharId, FVector Position) const
 	return Food;
 }
 
+//Questa funzione serve a ottenere la posizione sulla griglia data la posizione dell'attore nel mondo 
+FVector2D AGameField::GetXYPositionByRealLocation(FVector Location) const
+{
 
+	FVector RelativeLocation = Location - GetActorLocation();
+	float XCord = RelativeLocation.X / NodeSize;
+	float YCord = RelativeLocation.Y / NodeSize;
+	FVector2D XYPosition = FVector2D(XCord, YCord);
+	return XYPosition;
+
+}
 
 //Definiamo i metodi per :
 
@@ -336,4 +445,69 @@ ABaseFood* AGameField::GetFood(ABaseNode* Node) {
 FVector2D AGameField::GetFVector2DFromFVector3D(FVector Vector3D)
 {
 	return FVector2D(Vector3D.X, Vector3D.Y);
+}
+
+FVector AGameField::GetPacmanSpawn()const
+{
+	return PacmanSpawnLocation;
+}
+
+FVector AGameField::GetBlinkySpawn()const
+{
+	return BlinkySpawnLocation;
+}
+
+FVector AGameField::GetInkySpawn()const
+{
+	return InkySpawnLocation;
+}
+
+FVector AGameField::GetPinkySpawn()const
+{
+	return PinkySpawnLocation;
+}
+
+FVector AGameField::GetClydeSpawn()const
+{
+	return ClydeSpawnLocation;
+}
+
+FVector AGameField::GetExitNodeLocation() const
+{
+	return ExitNodeLocation;
+}
+
+FVector AGameField::GetBlinkySpecialSpotLocation() const
+{
+	return BlinkySpecialSpotLocation;
+}
+
+FVector AGameField::GetPinkySpecialSpotLocation() const
+{
+	return PinkySpecialSpotLocation;
+}
+
+FVector AGameField::GetInkySpecialSpotLocation() const
+{
+	return InkySpecialSpotLocation;
+}
+
+FVector AGameField::GetClydeSpecialSpotLocation() const
+{
+	return ClydeSpecialSpotLocation;
+}
+
+FVector AGameField::GetRightTeleportLocation() const
+{
+	return RightTeleportLocation;
+}
+
+FVector AGameField::GetLeftTeleportLocation() const
+{
+	return LeftTeleportLocation;
+}
+
+TArray<FVector> AGameField::GetTunnelNodeLocations() const
+{
+	return TunnelNodeLocations;
 }

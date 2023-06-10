@@ -18,22 +18,23 @@ class PROGETTOPUCCINI_API ABasePawn : public APawn
 
 public:
 
-	//Passo una reference della GameInstance
-	UMyGameInstance* GameInstance;
 
 	// Sets default values for this pawn's properties
 	ABasePawn();
 
 	//Dichiariamo metodi e Attributi :
 
+	void SetPacmanSpeeds();
+
 	void SetVerticalInput(float AxisValue);
 	void SetHorizontalInput(float AxisValue);
+	FVector2D GetGridPosition();
 
 	UFUNCTION(BlueprintCallable)
 		void SetNextNodeByDir(FVector InputDir);
 
 	FVector GetLastValidDirection() const;
-	//<-----------------------------------------------------------------Ho cambiato da protected a private
+
 private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -45,8 +46,20 @@ private:
 
 	void SetLastValidDirection(FVector Dir);
 
+	//Velocità di Pacman:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float CurrentMovementSpeed = 400.0f;
+	//La velocità di Pacman in condizioni normali 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float NormalPacmanSpeed = 400.0f;
+	//La velocità di pacman mentre mangia 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float PacmanEatSpeed = 400.0f;
+	//La velocità di pacman Quando i fantasmi sono in Fright status
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float PacmanFrightSpeed = 400.0f;
+
+
 	UPROPERTY(EditAnywhere)
 		float AcceptedDistance = 4.f;
 
@@ -71,6 +84,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 		class AMyGameMode* GameMode;
 
+	//Passo una reference della GameInstance
+	UPROPERTY(VisibleAnywhere)
+	UMyGameInstance* GameInstance;
 
 	UPROPERTY(VisibleAnywhere)
 		AGameField* TheGridGen;

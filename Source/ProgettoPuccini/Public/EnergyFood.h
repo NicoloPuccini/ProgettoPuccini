@@ -13,7 +13,11 @@ UCLASS()
 class PROGETTOPUCCINI_API AEnergyFood : public ABaseFood
 {
 	GENERATED_BODY()
+public:
 		AEnergyFood();
+
+		//Funzione che decrementa il contatore dei foodie e delle EnergyFood ancora da mangiare 
+		 void DecrementFoodieCounter() override;
 	//L'attributo puntatore al Blueprint
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;
