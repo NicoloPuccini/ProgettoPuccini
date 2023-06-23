@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
+#include "MyGameMode.h"
 #include "Foodie.h"
 
 AFoodie::AFoodie()
@@ -16,8 +16,19 @@ AFoodie::AFoodie()
 	Eaten = false;
 }
 
-void AFoodie::DecrementFoodieCounter()
+void AFoodie::BeginPlay()
+{
+
+	GameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
+	GameInstance = GameMode->GameInstance;
+	
+
+}
+
+void AFoodie::HandleFood()
 {
 	//Decremento di 1 il foodieCounter
 	GameInstance->SetFoodieCounter(GameInstance->GetFoodieCounter() - 1);
+	//Registro questo ffod per essere resumato 
+	//GameMode->GField->OnRestoreFoodEvent.AddDynamic(this, &ABaseFood::ResumeFood);
 }

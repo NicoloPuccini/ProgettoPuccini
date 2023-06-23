@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "BaseFood.h"
+#include "MyGameMode.h"
+
 
 // Sets default values
 ABaseFood::ABaseFood()
@@ -12,8 +13,42 @@ ABaseFood::ABaseFood()
 	
 }
 
-void ABaseFood::DecrementFoodieCounter()
+// Called when the game starts or when spawned
+void ABaseFood::BeginPlay()
 {
+	Super::BeginPlay();
+	GameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
+	GameInstance = GameMode->GameInstance;
+	
+}
+
+void ABaseFood::HandleFood()
+{
+
+}
+
+void ABaseFood::ResumeFood()
+{
+	/*
+	void AGameField::RestoreFood(ABaseFood * Food)
+	{
+
+		FVector NewFoodLocation = Food->GetActorLocation();
+
+		//Controllo se l'asset è stato nasconsto andando a controllare la sua coordinata Z 
+		if (NewFoodLocation.Z == -380)
+		{
+			//Se è stato nascosto lo riporto sul GameField
+			NewFoodLocation.Z = NewFoodLocation.Z + 400;
+			Food->SetActorLocation(NewFoodLocation);
+		}
+
+	}*/
+
+	//DEBUG:
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("RESUME FOOD Viene chiamata !")));
+	GameMode->GField->RestoreFood(this);
+
 }
 
 FVector2D ABaseFood::GetFoodGridPosition()
@@ -33,12 +68,6 @@ void ABaseFood::SetFoodEaten(bool YesNo)
 	Eaten = YesNo;
 }
 
-// Called when the game starts or when spawned
-void ABaseFood::BeginPlay()
-{
-	Super::BeginPlay();
-	GameInstance = Cast<UMyGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-}
 
 // Called every frame
 void ABaseFood::Tick(float DeltaTime)

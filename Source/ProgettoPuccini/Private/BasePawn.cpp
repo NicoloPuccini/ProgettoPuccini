@@ -46,6 +46,7 @@ void ABasePawn::BeginPlay()
 	LastNode = TheGridGen->TileMap[StartNode];
 	//Setto le velocità di Pacman
 	SetPacmanSpeeds();
+	PacmanCurrentStatus = DEFAULT ;
 	
 }
 
@@ -56,10 +57,25 @@ void ABasePawn::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!GameInstance->GetBlockAllPawn()) {
 
+		if (CallOnWin == true)
+		{
+			GameMode->OnWin();
+			CallOnWin = false;
+		}
+		//Controllo il TimerPacmanEat se deve ripartire o va lasciato stare 
+		CheckPacmanEatTimer();
 		
 		//Chiamiamo la funzione che definiamo qua sotto e che serve a gestire il movimento e velocità dei Pawn nel campo da gioco
 		ABasePawn::HandleMovement();
+		
 	}
+}
+
+void ABasePawn::ResetPacmanNodes()
+{
+	LastNode = nullptr; 
+	TargetNode = nullptr;
+	NextNode = nullptr;
 }
 
 //Setta il TargetNode sulla base del NextNode 
@@ -115,6 +131,7 @@ void ABasePawn::MoveToCurrentTargetNode()
 	const FVector Location(Pos.X, Pos.Y, GetActorLocation().Z);
 	//Setta la posizione del Pawn ad ogni Tick
 	SetActorLocation(Location);
+	EatPhantom();
 }
 
 //----------------------------------------------------Pacman EAT ---------------------------------------------------------------------------------
@@ -127,57 +144,66 @@ void ABasePawn::Eat() {
 	//if (TheGridGen->IsNodeValidForWalk(TheGridGen->GetNextNode(CurrentGridCoords, LastInputDirection)))
 	if (TheGridGen->IsEatable(TargetFood))
 	{
+		//Setto come velocità di pacman la velocità che ha mentre mangia 
+		CurrentMovementSpeed = PacmanEatSpeed;
+
 		//Ora che so che il food è mangiabile posso contrassegnarlo come mangiato (Settando Eaten a true ) 
 		//DEBUG:
 		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("FoodEatenPosition : X=%f  Y=%f"), TargetFood->GetFoodGridPosition().X, TargetFood->GetFoodGridPosition().Y));
 		TargetFood->SetFoodEaten(true);
 
+
+
 		//Decremento il contatore che tiene conto dei foodie e delle energyfood ancora in gioco 
-		TargetFood->DecrementFoodieCounter();
+		TargetFood->HandleFood();
 
 		//Controllo che il valore del foodCounter
-		if (GameInstance->GetFoodieCounter() == 0) 
+		if (GameInstance->GetFoodieCounter() == 0)
 		{
 			//DEBUG:
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Ho Vinto !!")));
-		}
-		//Sommo il punteggio del food mangiato al punteggio nella GameIstance
+			CallOnWin = true;
 		
-			//DEBUG:
-		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("PointsEarned : =%d "), TargetFood->GetPointsFromFood()));
-
-        GameInstance->AddToScore(TargetFood->GetPointsFromFood());
-		
-		//Ora posso "rimuoverlo" dal GameField , in realtà lo nascondo sotto il GameField 
-		TheGridGen->HideFood(TargetFood);
-
-		//Setto come velocità di pacman la velocità che ha mentre mangia 
-		CurrentMovementSpeed = PacmanEatSpeed;
-
-		//Quando Pacman mangia qualcosa resetta il Timer
-		GetWorld()->GetTimerManager().ClearTimer(GameMode->PacmanEatTimer);
-
 			
-	
-		//------------------------------------------Se ci sono dei fantasmi nella casa incrementa i loro contatori ----------------------
-		if (GameMode->Pinky->GetGhostMooveset()==ATHOUSE) 
-		{
-		//Incrementa il PinkyCounter
-			GameMode->Pinky->IncrementGhostCounter();
-			//DEBUG:
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("PinkyCounter= x=%d   "), GameMode->Pinky->GetGhostCounter()));
 		}
-		else if (GameMode->Inky->GetGhostMooveset() == ATHOUSE) 
-		{
-			GameMode->Inky->IncrementGhostCounter();
-			//DEBUG:
-			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("InkyCounter= x=%d   "), GameMode->Inky->GetGhostCounter()));
-		}
-		else if (GameMode->Clyde->GetGhostMooveset() == ATHOUSE)
-		{
-			GameMode->Clyde->IncrementGhostCounter();
-		}
-		else { /*Non fa nulla*/ }
+		
+			//Sommo il punteggio del food mangiato al punteggio nella GameIstance
+
+				//DEBUG:
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("PointsEarned : =%d "), TargetFood->GetPointsFromFood()));
+
+			GameInstance->AddToScore(TargetFood->GetPointsFromFood());
+
+			//Ora posso "rimuoverlo" dal GameField , in realtà lo nascondo sotto il GameField 
+			TheGridGen->HideFood(TargetFood);
+
+
+			//Quando Pacman mangia qualcosa resetta il Timer e setto PacmanEatTimerEnd a true per segnalare alla tick di far ripartire il Timer 
+			GetWorld()->GetTimerManager().ClearTimer(PacmanEatTimer);
+			PacmanEatTimerEnd = true;
+
+
+
+			//------------------------------------------Se ci sono dei fantasmi nella casa incrementa i loro contatori ----------------------
+			if (GameMode->Pinky->GetGhostMooveset() == ATHOUSE)
+			{
+				//Incrementa il PinkyCounter
+				GameMode->Pinky->IncrementGhostCounter();
+				//DEBUG:
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("PinkyCounter= x=%d   "), GameMode->Pinky->GetGhostCounter()));
+			}
+			else if (GameMode->Inky->GetGhostMooveset() == ATHOUSE)
+			{
+				GameMode->Inky->IncrementGhostCounter();
+				//DEBUG:
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("InkyCounter= x=%d   "), GameMode->Inky->GetGhostCounter()));
+			}
+			else if (GameMode->Clyde->GetGhostMooveset() == ATHOUSE)
+			{
+				GameMode->Clyde->IncrementGhostCounter();
+			}
+			else { /*Non fa nulla*/ }
+		
 	}
 	//Setto come velocità di pacman la velocità che ha normalmente
 	else 
@@ -195,7 +221,77 @@ void ABasePawn::Eat() {
 		}
 	}
 
+	
 }
+
+
+//------------------------------------------------PACMAN Mangia i fantasmi Frightened---------------------------------------------------------------
+void ABasePawn::EatPhantom() {
+
+	FVector2D NodePosition = TargetNode->GetGridPosition();
+	FVector2D BlinkyPosition = GameMode->Blinky->GetGridPosition();
+	FVector2D PinkyPosition = GameMode->Pinky->GetGridPosition();
+	FVector2D InkyPosition = GameMode->Inky->GetGridPosition();
+	FVector2D ClydePosition = GameMode->Clyde->GetGridPosition();
+
+	if (/*(NodePosition == BlinkyPosition && GameMode->Blinky->GetGhostStatus() == FRIGHTENED) ||*/ (CurrentGridCoords == BlinkyPosition && GameMode->Blinky->GetGhostStatus() == FRIGHTENED))
+	{
+		//DEBUG:
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Blinky got eated ")));
+
+		GameMode->Blinky->SetGhostMooveset(GOTOHOUSE);
+		//Setto il fantasma come incorporeal così non può essere mangiato più volte 
+		GameMode->Blinky->SetGhostStatus(INCORPOREAL);
+		GameMode->Blinky->SetCurrentMovementSpeed(GameMode->Blinky->GetIncorporealGhostSpeed());
+		//Ogni volta che Pacman si pappa un fantasmino si guadagnano 200 punti .
+		GameMode->GameInstance->AddToScore(200);
+	
+
+	}
+	if (/*(NodePosition == PinkyPosition && GameMode->Pinky->GetGhostStatus() == FRIGHTENED) ||*/ (CurrentGridCoords == PinkyPosition && GameMode->Pinky->GetGhostStatus() == FRIGHTENED))
+	{
+		//DEBUG:
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Pinky got eated")));
+
+		GameMode->Pinky->SetGhostMooveset(GOTOHOUSE);
+		//Setto il fantasma come incorporeal così non può essere mangiato più volte 
+		GameMode->Pinky->SetGhostStatus(INCORPOREAL);
+		GameMode->Pinky->SetCurrentMovementSpeed(GameMode->Pinky->GetIncorporealGhostSpeed());
+		//Ogni volta che Pacman si pappa un fantasmino si guadagnano 200 punti .
+		GameMode->GameInstance->AddToScore(200);
+		
+	}
+	if (/*(NodePosition == InkyPosition && GameMode->Inky->GetGhostStatus() == FRIGHTENED) ||*/ (CurrentGridCoords == InkyPosition && GameMode->Inky->GetGhostStatus() == FRIGHTENED))
+	{
+		//DEBUG:
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Inky got eated")));
+
+		GameMode->Inky->SetGhostMooveset(GOTOHOUSE);
+		//Setto il fantasma come incorporeal così non può essere mangiato più volte 
+		GameMode->Inky->SetGhostStatus(INCORPOREAL);
+		GameMode->Inky->SetCurrentMovementSpeed(GameMode->Inky->GetIncorporealGhostSpeed());
+		//Ogni volta che Pacman si pappa un fantasmino si guadagnano 200 punti .
+		GameMode->GameInstance->AddToScore(200);
+
+	}
+	if (/*(NodePosition == ClydePosition && GameMode->Clyde->GetGhostStatus() == FRIGHTENED) ||*/ (CurrentGridCoords == ClydePosition && GameMode->Clyde->GetGhostStatus() == FRIGHTENED))
+	{
+		//DEBUG:
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Clyde got eated")));
+
+		GameMode->Clyde->SetGhostMooveset(GOTOHOUSE);
+		//Setto il fantasma come incorporeal così non può essere mangiato più volte 
+		GameMode->Clyde->SetGhostStatus(INCORPOREAL);
+		GameMode->Clyde->SetCurrentMovementSpeed(GameMode->Clyde->GetIncorporealGhostSpeed());
+		//Ogni volta che Pacman si pappa un fantasmino si guadagnano 200 punti .
+		GameMode->GameInstance->AddToScore(200);
+
+	}
+}
+
+
+
+
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -208,29 +304,41 @@ void ABasePawn::OnNodeReached()
 	
 	//Mangia quello che si trova nel Node 
 	Eat();
-
+	
 	//Aggiorna gli attributi del Pawn di conseguenza
 	CurrentGridCoords = TargetNode->GetGridPosition();
 	LastNode = TargetNode;
 	SetTargetNode(nullptr);
+
+
+
+
+
+
 	//---------------------------------------------------------Teleport Sinistro-------------------------------------------------------------------------------
-	if (CurrentGridCoords == TheGridGen->GetXYPositionByRelativeLocation(TheGridGen->GetLeftTeleportLocation()) && LastValidInputDirection == FVector(0, -1, 0))
+	//Mi prendo la posizione sulla griglia dei due teleport 
+	FVector2D LeftTeleportGridPosition = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetLeftTeleportLocation());
+	FVector2D RightTeleportGridPosition = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetRightTeleportLocation());
+
+
+	//Se pacman è al teleport sinisto e ci va contro  
+	if (CurrentGridCoords == LeftTeleportGridPosition && LastValidInputDirection == FVector(0, -1, 0))
 	{
-		//Teletrasporto il pawn all'altro capo del teleport
-		const FVector Location(GetActorLocation() + FVector(0, 27 * (TheGridGen->NodeSize), 0));
+		//Teletrasporto il pawn al teleport Destro
+		const FVector Location(TheGridGen->GetRightTeleportLocation());
 		SetActorLocation(Location);
 		//Aggiorno gli attributi del Pawn di conseguenza
-		CurrentGridCoords = CurrentGridCoords + FVector2D(0, 27);
+		CurrentGridCoords = RightTeleportGridPosition;
 
 	}
 	//---------------------------------------------------------Teleport Destro-------------------------------------------------------------------------------
-	if (CurrentGridCoords.X == 14 && CurrentGridCoords.Y == 27 && LastValidInputDirection == FVector(0, 1, 0))
+	if (CurrentGridCoords == RightTeleportGridPosition && LastValidInputDirection == FVector(0, 1, 0))
 	{
 		//Teletrasporto il pawn all'altro capo del teleport
-		const FVector Location(GetActorLocation() - FVector(0, 27 * (TheGridGen->NodeSize), 0));
+		const FVector Location(TheGridGen->GetLeftTeleportLocation());
 		SetActorLocation(Location);
 		//Aggiorno gli attributi del Pawn di conseguenza
-		CurrentGridCoords = CurrentGridCoords - FVector2D(0, 27);
+		CurrentGridCoords = LeftTeleportGridPosition;
 
 	}
 }
@@ -255,6 +363,11 @@ void ABasePawn::SetNodeGeneric(const FVector Dir)
 	}
 }
 
+void ABasePawn::SetLastNode(ABaseNode* Node)
+{
+	LastNode = Node;
+}
+
 //La funzione che quando clicki su una tile ti stampa a schermo le coordinate  
 void ABasePawn::OnClick()
 {
@@ -269,15 +382,197 @@ void ABasePawn::OnClick()
 
 }
 
+
+
+//Funzioni per Settare CurrentGridCoords di Pacman dall'esterno
+
+
+void ABasePawn::SetCurrentGridCoords(FVector2D Location)
+{
+	CurrentGridCoords = Location;
+}
+
+
+
+
+
+
+
+
+void ABasePawn::CheckPacmanEatTimer()
+{
+	//Se il timer PacmanEat precedente si è concluso  
+	if (PacmanEatTimerEnd == true) 
+	{
+		//Setto PacmanEatTimerEnd a false e faccio partire il timer 
+		PacmanEatTimerEnd = false;
+		//PacmanEatTimer , Questo timer viene resettato e fatto ripartire ogni volta che Pacman mangia
+		GetWorld()->GetTimerManager().SetTimer(PacmanEatTimer, [&]()
+			{
+				//<------------------------------------------------------------------------Il timer si deve risettare ogni volta che termina o viene interrotto 
+				//DEBUG:
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Se c'è un fantasma in casa lo faccio uscire ")));
+				//SetGhostMooveset
+				//Se Pinky è a casa la faccio uscire , altrimenti controllo se è a casa il prossimo fantasma 
+				if (GameMode->Pinky->GetGhostMooveset() == ATHOUSE)
+				{
+					GameMode->Pinky->SetGhostMooveset(EXITHOUSE);
+				}else if (GameMode->Inky->GetGhostMooveset() == ATHOUSE)
+				{
+					GameMode->Inky->SetGhostMooveset(EXITHOUSE);
+				}
+				else if (GameMode->Clyde->GetGhostMooveset() == ATHOUSE)
+				{
+					GameMode->Clyde->SetGhostMooveset(EXITHOUSE);
+				}
+				else {
+					//DEBUG:
+					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Non ci sono fantasmi in casa da far uscire ")));
+				}
+				PacmanEatTimerEnd = true;
+			}, 4, false);
+	}
+}
+
 void ABasePawn::SetPacmanSpeeds()
 {
+	int32 CurrentLevel = GameInstance->GetLevel();
 	float StandardSpeed = GameInstance->GetStandardMovementSpeed();
-	//La velocità di Pacman in condizioni normali 
-		 NormalPacmanSpeed = StandardSpeed*(4.0f/5.0f);
-	//La velocità di pacman mentre mangia 
-	 PacmanEatSpeed = StandardSpeed * (71.0f / 100.0f);
-//La velocità di pacman Quando i fantasmi sono in Fright status
-   PacmanFrightSpeed = StandardSpeed * (9.0f / 10.0f);
+
+	if (CurrentLevel == 1) {
+		
+		//La velocità di Pacman in condizioni normali 
+		NormalPacmanSpeed = StandardSpeed * (80.0f / 100.0f);
+		//La velocità di pacman mentre mangia 
+		PacmanEatSpeed = StandardSpeed * (71.0f / 100.0f);
+		//La velocità di pacman Quando i fantasmi sono in Fright status
+		PacmanFrightSpeed = StandardSpeed * (90.0f / 100.0f);
+	}
+	else if (CurrentLevel>1&& CurrentLevel<5)
+	{
+		//La velocità di Pacman in condizioni normali 
+		NormalPacmanSpeed = StandardSpeed * (90.0f / 100.0f);
+		//La velocità di pacman mentre mangia 
+		PacmanEatSpeed = StandardSpeed * (79.0f / 100.0f);
+		//La velocità di pacman Quando i fantasmi sono in Fright status
+		PacmanFrightSpeed = StandardSpeed * (95.0f / 100.0f);
+	}
+	else if (CurrentLevel>4 && CurrentLevel<21)
+	{
+		//La velocità di Pacman in condizioni normali 
+		NormalPacmanSpeed = StandardSpeed ;
+		//La velocità di pacman mentre mangia 
+		PacmanEatSpeed = StandardSpeed * (87.0f / 100.0f);
+		//La velocità di pacman Quando i fantasmi sono in Fright status
+		PacmanFrightSpeed = StandardSpeed ;
+	
+	}
+	else if (CurrentLevel > 20)
+	{
+		//La velocità di Pacman in condizioni normali 
+		NormalPacmanSpeed = StandardSpeed * (90.0f / 100.0f);
+		//La velocità di pacman mentre mangia 
+		PacmanEatSpeed = StandardSpeed * (79.0f / 100.0f);
+		//La velocità di pacman Quando i fantasmi sono in Fright status
+		PacmanFrightSpeed = StandardSpeed * (100.0f / 100.0f);
+
+	}
+}
+
+void ABasePawn::BeginEnergizedMode()
+{
+	//DEBUG:
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Inizio EnergizedMode")));
+
+	//Metto i Fantasmi in modalità Frightned 
+	GameMode->Blinky->SetGhostStatus(FRIGHTENED);
+	GameMode->Inky->SetGhostStatus(FRIGHTENED);
+	GameMode->Pinky->SetGhostStatus(FRIGHTENED);
+	GameMode->Clyde->SetGhostStatus(FRIGHTENED);
+
+	//Cambio la staticMesh dei fantasmini :
+	//GameMode->Blinky->StaticMeshComponent->SetStaticMesh(GameMode->FrightGhostClass);
+
+
+
+
+	//Faccio partire il timer 
+	GetWorld()->GetTimerManager().SetTimer(PacmanEnergyModeTimer, [&]()
+		{
+			//Quando termina il timer i fantasmi tornano allo status appropriato 
+			//Se non sono più frightened perchè sono già stati mangiati non serve risettargli lo status 
+			if (GameMode->Blinky->GetGhostStatus() == FRIGHTENED) 
+			{
+				if (GameMode->ChaseScatterPeriod == CHASE) 
+				{
+					GameMode->Blinky->SetGhostStatus(CHASE);
+				}
+				else
+				if (GameMode->ChaseScatterPeriod == SCATTER)
+				{
+					GameMode->Blinky->SetGhostStatus(SCATTER);
+				}
+				else 
+				{
+					//DEBUG:
+					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcosa è andato storto !! Controlla il valore di ChaseScatterPeriod ")));
+				}
+			}
+			if (GameMode->Pinky->GetGhostStatus() == FRIGHTENED)
+			{
+				if (GameMode->ChaseScatterPeriod == CHASE)
+				{
+					GameMode->Pinky->SetGhostStatus(CHASE);
+				}
+				else
+					if (GameMode->ChaseScatterPeriod == SCATTER)
+					{
+						GameMode->Pinky->SetGhostStatus(SCATTER);
+					}
+					else
+					{
+						//DEBUG:
+						GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcosa è andato storto !! Controlla il valore di ChaseScatterPeriod ")));
+					}
+			}
+			if (GameMode->Inky->GetGhostStatus() == FRIGHTENED)
+			{
+				if (GameMode->ChaseScatterPeriod == CHASE)
+				{
+					GameMode->Inky->SetGhostStatus(CHASE);
+				}
+				else
+					if (GameMode->ChaseScatterPeriod == SCATTER)
+					{
+						GameMode->Inky->SetGhostStatus(SCATTER);
+					}
+					else
+					{
+						//DEBUG:
+						GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcosa è andato storto !! Controlla il valore di ChaseScatterPeriod ")));
+					}
+			}
+			if (GameMode->Clyde->GetGhostStatus() == FRIGHTENED)
+			{
+				if (GameMode->ChaseScatterPeriod == CHASE)
+				{
+					GameMode->Clyde->SetGhostStatus(CHASE);
+				}
+				else
+					if (GameMode->ChaseScatterPeriod == SCATTER)
+					{
+						GameMode->Clyde->SetGhostStatus(SCATTER);
+					}
+					else
+					{
+						//DEBUG:
+						GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcosa è andato storto !! Controlla il valore di ChaseScatterPeriod ")));
+					}
+			}
+			
+			
+		}, 6, false);
+	
 }
 
 void ABasePawn::SetVerticalInput(float AxisValue)

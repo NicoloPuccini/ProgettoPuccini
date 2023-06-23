@@ -17,7 +17,7 @@ public:
 	AFoodie();
 
 	//Funzione che decrementa il contatore dei foodie e delle EnergyFood ancora da mangiare 
-	void DecrementFoodieCounter() override;
+	void HandleFood() override;
 
 
 protected:
@@ -25,4 +25,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;
 
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 };

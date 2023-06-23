@@ -81,7 +81,7 @@ static char Map[MapSizeX][MapSizeY] = {
 	"###### ## ######## ## ######",
 	"###### ## #I  H C# ## ######",
 	"ZTTTTT    #      #    TTTTTX",
-	"###### ## #  E   # ## ######",
+	"###### ## #  L   # ## ######",
 	"###### ## ###--### ## ######",
 	"###### ##    B     ## ######",
 	"###### ## ######## ## ######",
@@ -199,17 +199,26 @@ void AGameField::GenerateFood()
 	}
 }
 
-ABaseNode* AGameField::SpawnNodeActorById(char CharId, FVector Position) 
+void AGameField::RestoreAllEatenFood()
+{
+	//DEBUG:
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("RestoreAllEatenFood viene lanciata ")));
+	//Mando l'evento agli oggetti registrati
+	OnRestoreFoodEvent.Broadcast();
+}
+
+ABaseNode* AGameField::SpawnNodeActorById(char CharId, FVector Position)
 {
 	ABaseNode* Node;
 	TSubclassOf<ABaseNode> ClassToSpawn = ABaseNode::StaticClass();
 	//BIHC sono le spawn location dei fantasmi (Pinky H)
-	if (CharId == 'E')
+	if (CharId == 'L')
 	{
 		//Location di un TunnelNode (Dove i fantasmi sono rallentati ) 
 		ClassToSpawn = WalkNode;
 		ExitNodeLocation=Position;
 	}
+	else 
 	if (CharId == 'T')
 	{
 		//Location di un TunnelNode (Dove i fantasmi sono rallentati ) 
@@ -401,6 +410,7 @@ void AGameField::RestoreFood(ABaseFood* Food)
 		//Se è stato nascosto lo riporto sul GameField
 		NewFoodLocation.Z=NewFoodLocation.Z + 400;
 		Food->SetActorLocation(NewFoodLocation);
+		Food->SetFoodEaten(false);
 	}
 	
 }

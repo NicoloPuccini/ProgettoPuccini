@@ -2,12 +2,14 @@
 
 
 #include "Blinky.h"
+#include"MyGameMode.h"
+
 
 ABlinky::ABlinky()
 {
 
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-
+	
 	//Sarà il nodo che il fantasma cercherà di raggiungere inseguendo Pacman , Cambia durante la partita (Sulla Griglia)
 	 WhereImGoing = FVector2D(0,0);
 
@@ -18,6 +20,7 @@ ABlinky::ABlinky()
 	CurrentDirection = FVector(0, 0, 0);
 
 	BlinkyCounter = 0;
+	
 }
 
 //per Blinky  non è necessario implementare queste funzioni 
@@ -33,7 +36,7 @@ void ABlinky::IncrementGhostCounter()
 
 void ABlinky::ResetGhostCounter()
 {
-
+	BlinkyCounter = 0;
 }
 
 //La funzione che definisce il comportamento individuale del fantasmino 
@@ -55,6 +58,54 @@ void ABlinky::WhereAmIGoingUpdate()
 
 void ABlinky::LoadSpecialSpot()
 {
+	//Setto GameMode e SpecialSpotLocation
+	TheGameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
 	SpecialSpotPosition = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetBlinkySpecialSpotLocation());
 }
 
+void ABlinky::GoToSpawnLocation()
+{
+	FVector2D HomeLocation = TheGameMode->GField->GetXYPositionByRealLocation(TheGameMode->GField->GetPinkySpawn())+ FVector2D(0,-2);
+
+	//Se non sei nella Home location Raggiungila 
+	if (CurrentGridCoords != HomeLocation) {
+		if (CrossingDetection())
+		{
+
+			WhereImGoing = HomeLocation;
+			FVector NewDirection = ChoseNewDirection();
+			SetCurrentDirection(NewDirection);
+
+		}
+
+		SetNodeGeneric(CurrentDirection);
+	}
+	else
+	{
+		
+		//Sei Arrivato a casa e da ora assume status atHome
+		if (TheGameMode->ChaseScatterPeriod == CHASE)
+		{
+			SetGhostStatus(CHASE);
+		}
+		else
+		{
+			SetGhostStatus(SCATTER);
+		}
+
+		SetGhostMooveset(ATHOUSE);
+		SetCurrentMovementSpeed(GhostSpeed);
+
+	
+	}
+}
+
+UStaticMeshComponent* ABlinky::GetStaticMeshComponent() const
+{
+	return StaticMeshComponent;
+}
+
+void ABlinky::SetStaticMeshComponent(UStaticMeshComponent* NewMesh)
+{
+	StaticMeshComponent = NewMesh;
+}

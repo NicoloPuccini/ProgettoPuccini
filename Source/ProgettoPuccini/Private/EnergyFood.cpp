@@ -2,6 +2,9 @@
 
 
 #include "EnergyFood.h"
+#include"MyGameMode.h"
+#include "BasePawn.h"
+
 
 AEnergyFood::AEnergyFood()
 {
@@ -13,11 +16,36 @@ AEnergyFood::AEnergyFood()
 	FoodRealPosition = FVector(0);
 	//E setto inizialmente Eaten a false 
 	Eaten = false;
+	
+
+}
+void AEnergyFood::TestDelegate()
+{
+	//DEBUG:
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("TESTDELEGATE viene lanciata ")));
+}
+void AEnergyFood::BeginPlay()
+{
+	
+	GameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
+	GameInstance = GameMode->GameInstance;
+	PacmanPawn = GameMode->Pacman;
+	
 }
 
-void AEnergyFood::DecrementFoodieCounter()
+void AEnergyFood::HandleFood()
 {
+
+
 	//Decremento di 1 il foodieCounter
 	GameInstance->SetFoodieCounter(GameInstance->GetFoodieCounter() - 1);
+
+	//Do inizio alla EnergizedMode dove pacman è più veloce e può mangiare i fantasmi Frightened 
+	PacmanPawn->BeginEnergizedMode();
+
+	//Registro questo ffod per essere resumato 
+	//GameMode->GField->OnRestoreFoodEvent.AddDynamic(this, &AEnergyFood::TestDelegate);
 }
+
+
 

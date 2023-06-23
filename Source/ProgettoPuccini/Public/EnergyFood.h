@@ -17,8 +17,19 @@ public:
 		AEnergyFood();
 
 		//Funzione che decrementa il contatore dei foodie e delle EnergyFood ancora da mangiare 
-		 void DecrementFoodieCounter() override;
+		 void HandleFood() override;
 	//L'attributo puntatore al Blueprint
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;
+
+
+	//Passo una reference del Pacman
+	UPROPERTY(VisibleAnywhere)
+		class ABasePawn* PacmanPawn;
+
+	void TestDelegate();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 };

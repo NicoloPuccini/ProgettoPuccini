@@ -68,9 +68,17 @@ void APhantomPawn::CheckGhostCounter()
 		{
 	    //DEBUG:
 		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcuno sta per uscire di casa  !")));
-		//Mooveset = EXITHOUSE;
+		Mooveset = EXITHOUSE;
 		}
 	}
+}
+
+void APhantomPawn::ResetAllGhostCounter()
+{
+	GameMode->Blinky->ResetGhostCounter();
+	GameMode->Pinky->ResetGhostCounter();
+	GameMode->Inky->ResetGhostCounter();
+	GameMode->Clyde->ResetGhostCounter();
 }
 
 
@@ -81,10 +89,7 @@ void APhantomPawn::BeginPlay()
 	Super::BeginPlay();
 	 
 	
-	//Voglio un riferimento al BasePawn che è già in gioco e posseduto dal player 
-	// La funzione GetActorOfClass prende il primo oggetto di quella classe già presente nel mondo 
-	//AInteractableObject* InteractableObject = Cast<AInteractableObject>(UGameplayStatics::GetActorOfClass(World, AInteractableObject::StaticClass()));
-	Pacman = Cast<ABasePawn>(UGameplayStatics::GetActorOfClass(GetWorld(), ABasePawn::StaticClass()));
+	
 	// Debug : Verifica se il pawn è stato trovato(Funziona !)
 	/*
 	 if (Pacman)
@@ -97,6 +102,12 @@ void APhantomPawn::BeginPlay()
 
 	//Prendo un riferimento al MyGameMode e al GameField 
 	GameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
+
+	//Voglio un riferimento al BasePawn che è già in gioco e posseduto dal player 
+	// La funzione GetActorOfClass prende il primo oggetto di quella classe già presente nel mondo 
+	//AInteractableObject* InteractableObject = Cast<AInteractableObject>(UGameplayStatics::GetActorOfClass(World, AInteractableObject::StaticClass()));
+	Pacman = GameMode->Pacman; //Cast<ABasePawn>(UGameplayStatics::GetActorOfClass(GetWorld(), ABasePawn::StaticClass()));
+
 	TheGridGen = GameMode->GField;
 	//Get the GameInstance reference 
 	GameInstance = GameMode->GameInstance;
@@ -104,8 +115,7 @@ void APhantomPawn::BeginPlay()
 	FVector2D StartNode = TheGridGen->GetXYPositionByRelativeLocation(GetActorLocation());
 	LastNode = TheGridGen->TileMap[StartNode];
 
-	//Setto le velocità dei fantasmi nelle varie condizioni (in base al livello )
-	SetSpeeds();
+	
 	// Setto Direzione iniziale del fantasma e CurrentGridCoords
 	CurrentGridCoords = TheGridGen->GetXYPositionByRealLocation(GetActorLocation());
 	CurrentDirection = FVector(0, 0, 0);
@@ -122,7 +132,7 @@ TEnumAsByte<EPhantomStatus> APhantomPawn::GetGhostStatus()
 
 void APhantomPawn::SetGhostStatus(const TEnumAsByte<EPhantomStatus> Status)
 {
-	if (Status == SCATTER)
+	if (Status == SCATTER|| Status == FRIGHTENED)
 	{
 		DirectionInvercted = false;
 	}
@@ -161,13 +171,36 @@ void APhantomPawn::Tick(float DeltaTime)
 	if (!GameInstance->GetBlockAllPawn()) {
 		//Chiamiamo la funzione che definiamo qua sotto e che serve a gestire il movimento e velocità dei Pawn nel campo da gioco
 		APhantomPawn::HandleMovement();
+		//Mangia quello che si trova nel Node 
+		Eat();
+
 	}
 }
+
+UStaticMeshComponent* APhantomPawn::GetStaticMeshComponent() const
+{
+	return nullptr;
+}
+
+void APhantomPawn::SetStaticMeshComponent(UStaticMeshComponent* NewMesh)
+{
+
+}
+
+
+
+
+
+
+
+
+
+
 
 //Setta il TargetNode sulla base del NextNode 
 void APhantomPawn::HandleMovement()
 {
-	
+
 	//Se TargetNode è già pieno posso muovere il Pawn
 	MoveToCurrentTargetNode();
 
@@ -186,53 +219,151 @@ void APhantomPawn::HandleMovement()
 	//Se TargetNode e NextNode sono vuoti 
 	if (!TargetNode && !NextNode) //<-------------------------PARTE CHE DECIDE LA DIREZIONE DEL FANTASMA NEL LABIRINTO -------------------------------------------------------------
 	{
-		
+
 		//Se il prossimo nodo nella direzione inserita LastInputDirection è WALKABLE (non serve)
 		//if (TheGridGen->IsNodeValidForWalk(TheGridGen->GetNextNode(CurrentGridCoords, LastValidInputDirection)))
-		 
+
 		//Se il fantasma è in giro per il labirinto e non a casa 
-		if (Mooveset == NORMAL) {
+		if (Mooveset == NORMAL && GhostStatus != FRIGHTENED)
+		{
 			if (CrossingDetection())
 			{
 				WhereAmIGoingUpdate();
 				FVector NewDirection = ChoseNewDirection();
 				SetCurrentDirection(NewDirection);
-				//Setto LastValidDirection = LastInputDirection 
-				//SetLastValidDirection(LastInputDirection);<------------------------------------------------------------------------------------------e anche qua 
+
 			}
 
 			SetNodeGeneric(CurrentDirection);
 		}
-		//-----------------------------------------------------------MOVIMENTO DEL FANTASMA DENTRO LA CASA----------------------------------------------------
-		else if (Mooveset = ATHOUSE)
+		//Parte che decide la direzione del fantasma quando è FRIGHTENED 
+		else if (Mooveset == NORMAL && GhostStatus == FRIGHTENED)
 		{
-			
-			float Down = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetPinkySpawn()).X;
-			float Up = Down + 2;
-			if (CurrentGridCoords.X == Down) 
+			//Controllo se è ad un incrocio 
+			if (CrossingDetection())
 			{
-				 HouseDirection = FVector(1, 0, 0);
+				//Non mi importa di WhereImGoing ma solo della direzione che verà scelta casualmente 
+				FVector NewDirection = ChoseNewRandomDirection();
+				SetCurrentDirection(NewDirection);
 			}
-			else if(CurrentGridCoords.X == Up)
+			SetNodeGeneric(CurrentDirection);
+		}
+		//---------------------------------------------MOVIMENTO DEL FANTASMA PER FARLO TORNARE A CASA QUANDO VIENE MANGIATO --------------------------------
+		else if (Mooveset == GOTOHOUSE)
+		{
+
+			//La tile sopra al cancello corrisponde a quella dove spawna Blinky
+			FVector2D GateEntry = GameMode->GField->GetXYPositionByRealLocation(GameMode->GField->GetBlinkySpawn());
+
+			if (CurrentGridCoords == GateEntry)
 			{
-				 HouseDirection = FVector(-1, 0, 0);
+				
+
+				EnterHouse();
+
+			}
+			//Se è in giro per il labirinto e non a casa  cerca di tornare al GateEntry
+			else if (InGhostHome == false) {
+				if (CrossingDetection())
+				{
+					WhereImGoing = GateEntry;
+					FVector NewDirection = ChoseNewDirection();
+					SetCurrentDirection(NewDirection);
+
+				}
+
+				SetNodeGeneric(CurrentDirection);
+
 			}
 			else 
 			{
+				if (CurrentGridCoords == FVector2D( GateEntry.X - 2, GateEntry.Y )|| CurrentGridCoords == FVector2D(GateEntry.X-1, GateEntry.Y)) 
+				{
+					//Il fantasmino deve solo scendere di due tile e poi è a casa 
+					FVector DownDirection = FVector(-1, 0, 0);
+					const auto Node = TheGridGen->GetNextNode(CurrentGridCoords, DownDirection);
+					SetTargetNode(Node);
+
+
+				}
+				else 
+				{
+				//Sono dentro la casa non mi resta che far tornare i fantasmini alla loro spawnPosition :
+
+					GoToSpawnLocation();
+				}
 			
 			}
-	        //DEBUG:
+		}
+
+
+
+		//-----------------------------------------------------------MOVIMENTO DEL FANTASMA DENTRO LA CASA----------------------------------------------------
+		else if (Mooveset == ATHOUSE)
+		{
+
+			float Down = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetPinkySpawn()).X;
+			float Up = Down + 2;
+			if (CurrentGridCoords.X == Down)
+			{
+				HouseDirection = FVector(1, 0, 0);
+			}
+			else if (CurrentGridCoords.X == Up)
+			{
+				HouseDirection = FVector(-1, 0, 0);
+			}
+			else
+			{
+				//Non fa nulla 
+			}
+			//DEBUG:
 			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("CurrentGridCoords: X=%f, Y=%f "), CurrentGridCoords.X, CurrentGridCoords.Y));
 			SetNodeGeneric(HouseDirection);
 		}
 		//---------------------------------------------------------PARTE CHE FA USCIRE I FANTASMI DALLA CASA ------------------------------------------------------
-		else if(Mooveset= EXITHOUSE)
+		else
 		{
-			//DEBUG:
-	        GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Debug :Exit the House move")));
+			FVector2D ExitNodeLocation = GameMode->GField->GetXYPositionByRealLocation((GameMode->GField->GetExitNodeLocation()));
+			//Se il fantasma è sull'exitNode 
+			if (CurrentGridCoords == FVector2D(ExitNodeLocation.X + 2, ExitNodeLocation.Y))
+			{
+				//Sono uscito dal labirinto e quindi Setto il Mooveset a NORMAL
+				Mooveset = NORMAL;
+				InGhostHome = false;
+			}
+			else
+				//Se il fantasma è nell'exitNode o nel GateNode 
+				if (CurrentGridCoords == ExitNodeLocation || CurrentGridCoords == FVector2D(ExitNodeLocation.X + 1, ExitNodeLocation.Y))
+				{
+					//Vado su fino a che non sono fuori dal labirinto ignorando che GateNode sia notWalkable 
+					FVector UpDirection = FVector(1, 0, 0);
+					const auto Node = TheGridGen->GetNextNode(CurrentGridCoords, UpDirection);
+					SetTargetNode(Node);
+
+
+				}
+			//Il comportamento Che assume in EXITHOUSE quando sta ancora vagando nella casa 
+				else {
+					//DEBUG:
+					//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Debug :Exit the House move")));
+					if (CrossingDetection())
+					{
+						//Mando il fantasma all'exitNode fissando l'exitNode in WhereImGoing
+						WhereImGoing = ExitNodeLocation;
+						//DEBUG:
+						//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ExitNode: X=%f, Y=%f "), WhereImGoing.X, WhereImGoing.Y));
+						//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("ExitNode location: X=%f, Y=%f Z=%f"), GameMode->GField->GetExitNodeLocation().X, GameMode->GField->GetExitNodeLocation().Y, GameMode->GField->GetExitNodeLocation().Z));
+						FVector NewDirection = ChoseNewDirection();
+						SetCurrentDirection(NewDirection);
+
+					}
+					SetNodeGeneric(CurrentDirection);
+				}
 		}
 	}
 }
+
+
 
 
 //--------------------------------MOVIMENTO DEL Pawn in una nuova casella (Se c'è gia il TargetNode non null)-------------------------------------------------
@@ -261,25 +392,37 @@ void APhantomPawn::MoveToCurrentTargetNode()
 	SetActorLocation(Location);
 }
 
-//----------------------------------------------------Pacman EAT ---------------------------------------------------------------------------------
+
+
+
+
+//----------------------------------------------------Phantom EAT ---------------------------------------------------------------------------------
 void APhantomPawn::Eat() 
 {
 	
 	if (TargetNode == nullptr) return;
-	//Prendo la posizione di Pacman 
+	//Se i fantasmi sono in SCATTER o In CHASE Possono mangiare pacman
 	if (GhostStatus == CHASE || GhostStatus == SCATTER)
 	{
-		if (Pacman->GetGridPosition() == TargetNode->GetGridPosition())
+		//Prendo la posizione di Pacman 
+		if ( Pacman->GetGridPosition() == CurrentGridCoords)
 		{
 			//DEBUG:
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT(" Pacman e' stato mangiato ")));
 			GameMode->GameInstance->DecrementCurrentLives();
-			//<---------------------------------------------------------------------------------------------------------------------DaCompletare
+			
 			//Controllo il numero di righe vite di pacman per vedere se sono 0
 			if (GameMode->GameInstance->GetCurrentLives() < 0) 
 			{
 			//Decreto il GameOver
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT(" GAME-OVER ")));
+				GameMode->OnGameOver();
+			}
+			else 
+			{
+				//Decreto il GameOver
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Pacman viene mangiato e perde una vita")));
+				GameMode->OnPacmanLoseLife();
 			}
 			
 		}
@@ -287,13 +430,29 @@ void APhantomPawn::Eat()
 	
 }
 
+void APhantomPawn::SetLastNode(ABaseNode* Node)
+{
+	LastNode = Node;
+}
+
+void APhantomPawn::ResetAllPhantomNodes()
+{
+	LastNode = nullptr;
+	TargetNode = nullptr;
+	NextNode = nullptr;
+}
+
 //-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 
 
 //Quando il Pawn raggiunge il TargetNode
 void APhantomPawn::OnNodeReached()
 {
-	if (GetGhostStatus() == SCATTER)
+
+	if (GetGhostStatus() == SCATTER|| GetGhostStatus() == FRIGHTENED)
 	{
 		if(!DirectionInvercted)
 		{
@@ -303,16 +462,14 @@ void APhantomPawn::OnNodeReached()
 			DirectionInvercted = true;
 		}
 	}
-	//Mangia quello che si trova nel Node 
-	Eat();
-
+	
 	//Aggiorna gli attributi del Pawn di conseguenza
 	CurrentGridCoords = TargetNode->GetGridPosition();
 	LastNode = TargetNode;
 	SetTargetNode(nullptr);
 	//--------------------------------------------------------Tunnel Node (riduci la velocità del fantasma)--------------------------------------------------
 	
-	TunnelCheck();
+	GhostSpeedCheck();
 	
 
 
@@ -343,6 +500,12 @@ void APhantomPawn::OnNodeReached()
 
 	}
 }
+
+
+
+
+
+
 
 void APhantomPawn::SetTargetNode(ABaseNode* Node)
 {
@@ -386,6 +549,19 @@ void APhantomPawn::WhereAmIGoingUpdate()
 
 }
 
+void APhantomPawn::GoToSpawnLocation()
+{
+
+}
+
+void APhantomPawn::EnterHouse()
+{
+	InGhostHome = true;
+	FVector DownDirection = FVector(-1, 0, 0);
+	const auto Node = TheGridGen->GetNextNode(CurrentGridCoords, DownDirection);
+	SetTargetNode(Node);
+}
+
 void APhantomPawn::SetCurrentMovementSpeed(float NewSpeed)
 {
 	CurrentMovementSpeed = NewSpeed;
@@ -396,11 +572,22 @@ float APhantomPawn::GetCurrentMovementSpeed()
 	return CurrentMovementSpeed;
 }
 
-void APhantomPawn::TunnelCheck()
+float APhantomPawn::GetIncorporealGhostSpeed()
 {
-	
-	bool IsInTheTunnel = false;
+	return IncorporealGhostSpeed;
+}
 
+float APhantomPawn::GetGhostSpeed() const
+{
+	return GhostSpeed;
+}
+
+
+
+void APhantomPawn::GhostSpeedCheck()
+{
+	bool IsInTheTunnel = false;
+	//Controllo se il fantasma è in uno dei Tunnel Node
 	for (const auto& element : TheGridGen->GetTunnelNodeLocations())
 	{
 		FVector2D TunnelNodeGridPosition = TheGridGen->GetXYPositionByRealLocation(element);
@@ -409,51 +596,38 @@ void APhantomPawn::TunnelCheck()
 			IsInTheTunnel = true;
 		}
 	}
-
+	if (GhostStatus == INCORPOREAL)
+	{
+		SetCurrentMovementSpeed(IncorporealGhostSpeed);
+	}
+	else
 	if(IsInTheTunnel)
 	{
 		SetCurrentMovementSpeed(GhostTunnelSpeed);
 	}
 	else
 	{
-		if (GhostStatus == NORMAL || GhostStatus == CHASE)
+		if (GhostStatus == SCATTER || GhostStatus == CHASE)
 		{
 			SetCurrentMovementSpeed(GhostSpeed);
 		}
 		//Il fantasma è in Fright
-		else 
+		else if(GhostStatus == FRIGHTENED)
 		{
 			SetCurrentMovementSpeed(FrightGhostSpeed);
 		}
+		else 
+		{
+			//DEBUG:
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Errore : GhostSpeedCheck non riconosce il PhantomStatus")));
+		}
 	}
-	
+	//DEBUG:
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("CurrentGhostSpeed: %f "), CurrentMovementSpeed));
 }
 
-//<-----------------------------------------------------------------------------------------------------------------------------------------Va sostituita(Cancellata)
-/*
-void APhantomPawn::SetVerticalInput(float AxisValue)
-{
-	
-	if (AxisValue == 0) return;
-	const FVector Dir = (GetActorForwardVector() * AxisValue).GetSafeNormal();
-	LastInputDirection = Dir.GetSafeNormal();
-	SetNextNodeByDir(LastInputDirection);
-	
-}
-*/
-//<-------------------------------------------------------------------------------------------------------------------------------------------Va sostituita (Cancellata)
-/*
-void APhantomPawn::SetHorizontalInput(float AxisValue)
-{
-	
-	if (AxisValue == 0) return;
-	const FVector Dir = (GetActorRightVector() * AxisValue).GetSafeNormal();
-	LastInputDirection = Dir;
-	SetNextNodeByDir(LastInputDirection);
-	
-}
-*/
-//<-----------------------------------------------------------------CrossingDetection---------------------------------------------------------------------------------------------------------
+
+//-----------------------------------------------------------------CrossingDetection---------------------------------------------------------------------------------------------------------
 bool APhantomPawn::CrossingDetection()
 {
 	//Questa funzione serve a controllare se il Fantasma si trova in un incrocio , da true se è ad un incrocio false altrimenti 
@@ -480,14 +654,32 @@ void APhantomPawn::SetSpeeds()
 	//Dipendono dal livello <------------------------------------------------------------------------------------------DaModificare
 	//Prendo la velocità standard dalla GameInstance e assegno le varie velocità
 	float StandardSpeed = GameInstance->GetStandardMovementSpeed();
-	//DEBUG:
-	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("SetSpeeds: StandardSpeed=%f "), StandardSpeed));
-	 GhostTunnelSpeed = (4.0f/10.0f)*StandardSpeed;
-		 GhostSpeed = (3.0f/4.0f ) * StandardSpeed;
-		 FrightGhostSpeed =(1.0f/ 2.0f)* StandardSpeed;
-		 //DEBUG:
-		 //GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("SetSpeeds: GhostTunnelSpeed=%f,  GhostSpeed=%f,  FrightGhostSpeed=%f "), GhostTunnelSpeed, GhostSpeed, FrightGhostSpeed));
-}
+	int32 CurrentLevel = GameInstance->GetLevel();
+
+	if (CurrentLevel == 1) {
+		//DEBUG:
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("SetSpeeds: StandardSpeed=%f "), StandardSpeed));
+		GhostTunnelSpeed = (4.0f / 10.0f) * StandardSpeed;
+		GhostSpeed = (3.0f / 4.0f) * StandardSpeed;
+		FrightGhostSpeed = (1.0f / 2.0f) * StandardSpeed;
+		//DEBUG:
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("SetSpeeds: GhostTunnelSpeed=%f,  GhostSpeed=%f,  FrightGhostSpeed=%f "), GhostTunnelSpeed, GhostSpeed, FrightGhostSpeed));
+	}
+	else if (CurrentLevel > 1 && CurrentLevel < 5) 
+	{
+		GhostTunnelSpeed = (45.0f / 100.0f) * StandardSpeed;
+		GhostSpeed = (85.0f / 100.0f) * StandardSpeed;
+		FrightGhostSpeed = (55.0f / 100.0f) * StandardSpeed;
+	}
+	else if (CurrentLevel > 4 ) 
+	{
+		GhostTunnelSpeed = (50.0f / 100.0f) * StandardSpeed;
+		GhostSpeed = (95.0f / 100.0f) * StandardSpeed;
+		FrightGhostSpeed = (60.0f / 100.0f) * StandardSpeed;
+	}
+	
+
+	}
 //<----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 FVector  APhantomPawn::From2To3SizeVector(FVector2D input)
@@ -575,7 +767,47 @@ FVector APhantomPawn::ChoseNewDirection()
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcosa è andato storto nell'algoritmo di scelta della direzione del fansma:PhantoPawn riga ChoseNewDirection ")));
 	return FVector(0, 0, 0);
 	}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+FVector APhantomPawn::ChoseNewRandomDirection()
+{
+	FVector AllDir[] = { FVector(1,0,0),FVector(0,1,0), FVector(-1,0,0),FVector(0,-1,0) };
+	//Genero un numero randomico da 0 a 3
+	//UE_ARRAY_COUNT(AllDir)-1    Calcola la lunghezza dell'array
+	const int32 Rand = FMath::RandRange(0, UE_ARRAY_COUNT(AllDir) - 1);
+	//DEBUG:
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Rand: X=%d "), Rand));
+	int32 i = Rand;
+
+	while (true)
+	{
+		FVector CandidateDirection = AllDir[i];
+		//Escludo la direzione da cui sta venendo il fantasma
+		if (CandidateDirection != CurrentDirection * (-1))
+		{
+			//Prendo il prossimo nodo in quella direzione
+			auto Node = GameMode->GField->GetNextNode(CurrentGridCoords, CandidateDirection);
+
+			//Controllo che il nodo non sia un muro
+			if (GameMode->GField->IsNodeValidForWalk(Node))
+			{
+				return CandidateDirection;
+			}
+		}
+		//incremento i in modulo 4
+		i = (i + 1) % 4;
+	}
+}
+
+
+
+
+
+
+
+
+
 void APhantomPawn::SetNextNodeByDir(FVector InputDir)
 {
 	const FVector2D Coords = TargetNode ? TargetNode->GetGridPosition() : LastNode->GetGridPosition();//<-----------------------------------------------------------Cosa significa questa sintassi ?
@@ -605,6 +837,11 @@ FVector APhantomPawn::GetCurrentDirection() const
 FVector2D APhantomPawn::GetGridPosition() const
 {
 	return CurrentGridCoords;
+}
+
+void APhantomPawn::SetGridPosition(FVector2D Location)
+{
+	CurrentGridCoords=Location;
 }
 
 void APhantomPawn::SetCurrentDirection(FVector Dir)

@@ -19,13 +19,16 @@ private:
 		int32 Score = 0 ;
 
 	UPROPERTY(EditAnywhere)
-	int32 CurrentLives=3;
+		int32 Lives = 200;
+
+	UPROPERTY(EditAnywhere)
+	int32 CurrentLives=200;
 
 	UPROPERTY(EditAnywhere)
 		int32 FoodieCounter = 239;
 
 	UPROPERTY(EditAnywhere)
-		int32 CurrentLevel = 0;
+		int32 CurrentLevel = 1;
 
 	//Il nome è indicativo
 	UPROPERTY(EditAnywhere)
@@ -35,13 +38,22 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		 float StandardMovementSpeed = 400.0f;
 
+
+
+	
 public:
 
+
 	float GetStandardMovementSpeed() const;
-	
+	//Funzioni per la gestione dei livelli :
+	int32 GetLevel()const;
+	void IncrementLevel();
+	void ResetLevel();
+
 	//Funzioni per la gestione delle vite 
 	int32 GetCurrentLives() const;
 	void DecrementCurrentLives();
+	void ResetLives();
 
 	//funzioni per la gestione dei FoodieCounter (Verve per decretare quando Pacman Vince il gioco )
 	void SetFoodieCounter(int32 NewCount);
@@ -55,10 +67,9 @@ public:
 	void SetBlockAllPawn(bool YOrN);
 
 	void AddToScore(int32 points);
-
 	UFUNCTION(BlueprintCallable)
 		int32 GetScore();
-
+	void ResetScore();
 
 	
 };

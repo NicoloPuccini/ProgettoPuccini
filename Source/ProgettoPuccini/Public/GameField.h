@@ -8,6 +8,10 @@
 #include "GameFramework/Actor.h"
 #include "GameField.generated.h"
 
+//DynamicMulticastDelegate
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRestoreFood);
+
+
 UCLASS()
 class PROGETTOPUCCINI_API AGameField : public AActor
 {
@@ -162,6 +166,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Foods")
 		TSubclassOf<ABaseFood> SuperFood;
 
+	public:
+		UPROPERTY(BlueprintAssignable)
+			FOnRestoreFood OnRestoreFoodEvent;
+
+		void RestoreAllEatenFood();
+
+		private:
 	//Dichiaro un attributo , è un vettore (X,Y,Z) che conterrà in ogni sua componente la NodeSize
 	FVector NodeSizeVector;
 
@@ -175,7 +186,7 @@ private:
 	//Dichiaro un metodo per generare la griglia di gioco Grid
 	void GenerateGrid();
 	void GenerateFood();
-protected:
+private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 

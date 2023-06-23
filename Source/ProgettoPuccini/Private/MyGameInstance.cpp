@@ -3,10 +3,39 @@
 
 #include "MyGameInstance.h"
 
+void UMyGameInstance::ResetScore()
+{
+	Score = 0;
+}
+
+
+
+
+
+
+
+
 float UMyGameInstance::GetStandardMovementSpeed() const
 {
 	return StandardMovementSpeed ;
 }
+
+int32 UMyGameInstance::GetLevel() const
+{
+	return CurrentLevel;
+}
+
+void UMyGameInstance::IncrementLevel()
+{
+	CurrentLevel = CurrentLevel + 1;
+}
+
+void UMyGameInstance::ResetLevel()
+{
+	CurrentLevel = 1;
+}
+
+
 
 int32 UMyGameInstance::GetCurrentLives() const
 {
@@ -16,6 +45,11 @@ int32 UMyGameInstance::GetCurrentLives() const
 void UMyGameInstance::DecrementCurrentLives()
 {
 	CurrentLives = CurrentLives - 1;
+}
+
+void UMyGameInstance::ResetLives()
+{
+	CurrentLives = Lives;
 }
 
 void UMyGameInstance::SetFoodieCounter(int32 NewCount)

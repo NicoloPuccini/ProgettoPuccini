@@ -2,6 +2,8 @@
 
 
 #include "Inky.h"
+#include "MyGameMode.h"
+
 
 AInky::AInky()
 {
@@ -66,7 +68,46 @@ void AInky::WhereAmIGoingUpdate()
 
 void AInky::LoadSpecialSpot()
 {
+	//Setto GameMode e SpecialSpotLocation
+	TheGameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
 	SpecialSpotPosition = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetInkySpecialSpotLocation());
 	Blinky = Cast<ABlinky>(UGameplayStatics::GetActorOfClass(GetWorld(), ABlinky::StaticClass()));
 	
+}
+
+void AInky::GoToSpawnLocation()
+{
+	FVector2D HomeLocation = TheGameMode->GField->GetXYPositionByRealLocation(TheGameMode->GField->GetInkySpawn());
+
+	//Se non sei nella Home location Raggiungila 
+	if (CurrentGridCoords != HomeLocation) {
+		if (CrossingDetection())
+		{
+
+			WhereImGoing = HomeLocation;
+			FVector NewDirection = ChoseNewDirection();
+			SetCurrentDirection(NewDirection);
+
+		}
+
+		SetNodeGeneric(CurrentDirection);
+	}
+	else
+	{
+		
+		//Sei Arrivato a casa e da ora assume status atHome
+		if (TheGameMode->ChaseScatterPeriod == CHASE)
+		{
+			SetGhostStatus(CHASE);
+		}
+		else
+		{
+			SetGhostStatus(SCATTER);
+		}
+
+		SetGhostMooveset(ATHOUSE);
+		SetCurrentMovementSpeed(GhostSpeed);
+
+	
+	}
 }

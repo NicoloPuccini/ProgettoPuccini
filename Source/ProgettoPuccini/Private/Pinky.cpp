@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Pinky.h"
+#include "MyGameMode.h"
+
 
 APinky::APinky()
 {
@@ -61,5 +62,44 @@ void APinky::WhereAmIGoingUpdate()
 
 void APinky::LoadSpecialSpot()
 {
+	//Setto GameMode e SpecialSpotLocation
+	TheGameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
 	SpecialSpotPosition = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetPinkySpecialSpotLocation());
+}
+
+void APinky::GoToSpawnLocation()
+{
+	FVector2D HomeLocation = TheGameMode->GField->GetXYPositionByRealLocation(TheGameMode->GField->GetPinkySpawn());
+
+	//Se non sei nella Home location Raggiungila 
+	if (CurrentGridCoords != HomeLocation) {
+		if (CrossingDetection())
+		{
+
+			WhereImGoing = HomeLocation;
+			FVector NewDirection = ChoseNewDirection();
+			SetCurrentDirection(NewDirection);
+
+		}
+
+		SetNodeGeneric(CurrentDirection);
+	}
+	else
+	{
+		
+		//Sei Arrivato a casa e da ora assume status atHome
+		if (TheGameMode->ChaseScatterPeriod == CHASE)
+		{
+			SetGhostStatus(CHASE);
+		}
+		else
+		{
+			SetGhostStatus(SCATTER);
+		}
+
+		SetGhostMooveset(ATHOUSE);
+		SetCurrentMovementSpeed(GhostSpeed);
+
+	
+	}
 }

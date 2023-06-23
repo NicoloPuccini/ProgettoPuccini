@@ -26,8 +26,15 @@ protected:
 		UStaticMeshComponent* StaticMeshComponent;
 
 	UPROPERTY(EditAnywhere)
+		class AMyGameMode* TheGameMode;
+
+	UPROPERTY(EditAnywhere)
 	int32 ClydeCounter;
 
 	void WhereAmIGoingUpdate() override;
 	void LoadSpecialSpot() override;
+	void GoToSpawnLocation() override;
+public:
+    UStaticMeshComponent* GetStaticMeshComponent() const override;
+	void SetStaticMeshComponent(UStaticMeshComponent* NewMesh) override;
 };

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
+
+
 #include "Kismet/GameplayStatics.h"
 #include "MyGameInstance.h"
 #include "CoreMinimal.h"
@@ -17,8 +19,11 @@ public:
 	ABaseFood();
 
 	//La funzione che verrà overload da tutti i food pe capire quali sono fodie e quali energyFood per decrementare il FoodieCounter
-	virtual void DecrementFoodieCounter();
+	virtual void HandleFood();
 	
+	//Riposta il food da mangiato a non mangiato e visibile 
+	void ResumeFood();
+
 	//Metodi per la posizione del Food 
 	FVector2D GetFoodGridPosition();
 	void SetFoodGridPosition(const double InX, const double InY);
@@ -51,11 +56,14 @@ public:
 	UPROPERTY(EditAnywhere)
 		FVector FoodRealPosition;
 protected:
+	//Passo una reference del GameMode
+	UPROPERTY(VisibleAnywhere)
+	     class AMyGameMode* GameMode;
+
 	//Passo una reference della GameInstance
 	UPROPERTY(VisibleAnywhere)
 		UMyGameInstance* GameInstance;
-
-
+    
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

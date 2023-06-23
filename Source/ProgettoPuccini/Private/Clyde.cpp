@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Clyde.h"
+#include "MyGameMode.h"
+
 
 AClyde::AClyde()
 {
@@ -34,6 +35,7 @@ void AClyde::IncrementGhostCounter()
 
 void AClyde::ResetGhostCounter()
 {
+	
 	ClydeCounter = 0;
 }
 
@@ -68,9 +70,70 @@ void AClyde::WhereAmIGoingUpdate()
 	//In modalità Frightened il pawn non punta un punto specifico ma sceglie le direzioni casualmente 
 }
 
+
+
+
+
+
 void AClyde::LoadSpecialSpot()
 {
+	//Setto GameMode e SpecialSpotLocation
+	TheGameMode = (AMyGameMode*)(GetWorld()->GetAuthGameMode());
 	SpecialSpotPosition = TheGridGen->GetXYPositionByRealLocation(TheGridGen->GetClydeSpecialSpotLocation());
 	//DEBUG:
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Clyde SpecialSpot : X=%f, Y=%f "), SpecialSpotPosition.X, SpecialSpotPosition.Y));
+}
+
+
+
+
+
+
+
+
+void AClyde::GoToSpawnLocation()
+{
+	FVector2D HomeLocation = TheGameMode->GField->GetXYPositionByRealLocation(TheGameMode->GField->GetClydeSpawn());
+
+	//Se non sei nella Home location Raggiungila 
+	if (CurrentGridCoords != HomeLocation) {
+		if (CrossingDetection())
+		{
+
+			WhereImGoing = HomeLocation;
+			FVector NewDirection = ChoseNewDirection();
+			SetCurrentDirection(NewDirection);
+
+		}
+
+		SetNodeGeneric(CurrentDirection);
+	}
+	else
+	{
+		
+		//Sei Arrivato a casa e da ora assume status atHome
+		if (TheGameMode->ChaseScatterPeriod == CHASE)
+		{
+			SetGhostStatus(CHASE);
+		}
+		else
+		{
+			SetGhostStatus(SCATTER);
+		}
+
+		SetGhostMooveset(ATHOUSE);
+		SetCurrentMovementSpeed(GhostSpeed);
+
+	
+	}
+}
+
+UStaticMeshComponent* AClyde::GetStaticMeshComponent() const
+{
+	return StaticMeshComponent;
+}
+
+void AClyde::SetStaticMeshComponent(UStaticMeshComponent* NewMesh)
+{
+	StaticMeshComponent = NewMesh;
 }

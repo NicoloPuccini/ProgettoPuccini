@@ -21,6 +21,7 @@ class PROGETTOPUCCINI_API AMyGameMode : public AGameMode
 	GENERATED_BODY()
 
 public:
+
 	//Serve per creare il GameField
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<AGameField> GameFieldClass;
@@ -28,10 +29,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		AGameField* GField;
 
-	FTimerHandle PacmanEatTimer;
-
 	//Passo una reference della GameInstance
 	UMyGameInstance* GameInstance;
+
+	//Passo una reference del BasePawn
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		ABasePawn* Pacman;
+
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<APhantomPawn> FrightGhostClass;
+	// reference to a GameField object
+
+
 
 	//Serve per spawnare Blinky
 	UPROPERTY(EditDefaultsOnly)
@@ -61,15 +71,37 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		AClyde* Clyde;
 
+	//Serve a tener conto degli intervalli di SCATTER e CHASE 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chase Scatter ")
+		TEnumAsByte<EPhantomStatus> ChaseScatterPeriod;
+
+	FTimerHandle Scatter_1;
+	FTimerHandle Chase_1;
+	FTimerHandle Scatter_2;
+	FTimerHandle Chase_2;
+	FTimerHandle Scatter_3;
+	FTimerHandle Chase_3;
+	FTimerHandle Scatter_4;
+
+
 			//Dichiarazione del metodo costruttore della MyGameMode
 	AMyGameMode();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	void GameStart();
+	void ReturnAllPawnToSpawnLocations();
 	
 private:
 	void StartChaseScatterTimers();
+	void ClearAllChaseScatterTimers();
 	void SetInitialBehavior();
+	void LoadInitialGhostCounterLimit();
+public:
  	void LoadGhostCounterLimit();
+	void OnWin();
+	void OnGameOver();
+	void OnPacmanLoseLife();
+	void LoadNewLevel();
+
 };

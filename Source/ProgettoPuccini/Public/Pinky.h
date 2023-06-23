@@ -28,6 +28,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	int32 PinkyCounter;
 
+	UPROPERTY(EditAnywhere)
+		class AMyGameMode* TheGameMode;
 	void WhereAmIGoingUpdate() override;
 	void LoadSpecialSpot() override;
+	void GoToSpawnLocation() override;
+
 };

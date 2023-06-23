@@ -16,16 +16,18 @@ UENUM()
 enum EPhantomStatus {
 	CHASE UMETA(DisplayName = "CHASE"),
 	SCATTER UMETA(DisplayName = "SCATTER"),
-	FRIGHTENED UMETA(DisplayName = "FRIGHTENED")
+	FRIGHTENED UMETA(DisplayName = "FRIGHTENED"),
+	INCORPOREAL  UMETA(DisplayName = "INCORPOREAL") //Lo stato in cui entra il fantasma quando viene mangiato 
 };
 
 UENUM()
-enum  EMooveset {    //<--------------------------------------Sbarella di brutto se cambi l'ordine dell'enum , PERCHé??????
+enum  EMooveset {    
 	
-	
+	NORMAL UMETA(DisplayName = "NORMAL"),
 	ATHOUSE UMETA(DisplayName = "ATHOUSE"),
 	EXITHOUSE UMETA(DisplayName = "EXITHOUSE"),
-	NORMAL UMETA(DisplayName = "NORMAL")
+	GOTOHOUSE  UMETA(DisplayName = "GOTOHOUSE")
+	
 };
 
 
@@ -39,17 +41,17 @@ public:
 	// Sets default values for this pawn's properties
 	APhantomPawn();
 
-
 	//La funzioni che gestiscono il ghost counter limit
 	int32 GetGhostCounterLimit();
 	void SetGhostCounterLimit(int32 Limit);
+
 
 	//Funzioni che gestiscono i contatori dei fantasmini (Ogni fantasmino la impementa in modo diverso )
 	virtual int32 GetGhostCounter() ;
 	virtual void IncrementGhostCounter();
 	virtual void ResetGhostCounter();
 	void CheckGhostCounter();
-	
+	void ResetAllGhostCounter();
 
 	//Funzioni sullo stato del fantasma 
 	TEnumAsByte<EPhantomStatus> GetGhostStatus();
@@ -69,7 +71,9 @@ public:
 
 	  //Questa è la funzione che aggiorna WhereAmIGoing tutte le volte che sono ad un incrocio (Ogni fantasma la definisce in modo diverso )
 	  virtual void WhereAmIGoingUpdate();
-
+	  //Questa funzione fa tornare ogni fantasma nella sua Spawn location (Ad eccezione di blinky )(Ogni fantasma la definisce in modo diverso )
+	 virtual void  GoToSpawnLocation();
+	 
 
 	//Dichiariamo metodi e Attributi :
 
@@ -80,13 +84,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void SetNextNodeByDir(FVector InputDir);
 
+	//Funzioni per il movimento dei fantasmi 
 	FVector From2To3SizeVector(FVector2D input);
 
 	FVector2D GetSpecialSpotPosition();
 	FVector2D GetWhereImGoing();
 	FVector GetCurrentDirection() const;
 	FVector2D GetGridPosition() const;
+	void SetGridPosition(FVector2D Location);
 
+	
 protected:
 
 	
@@ -112,6 +119,11 @@ protected:
 		float GhostSpeed;
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float FrightGhostSpeed;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float IncorporealGhostSpeed= 1000.0f;
+
+
+
 
 	UPROPERTY(EditAnywhere)
 		float AcceptedDistance = 4.f;
@@ -150,20 +162,40 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Phantom")
 		 FVector2D SpecialSpotPosition;
 
+	//Serve a tener conto se il fantasma è sul terreno di casa o meno 
+	UPROPERTY(VisibleAnywhere, Category = "Phantom")
+		bool InGhostHome=false;
+
 	//Le funzioni dei fantasmi :
+
+
+	
+	public:
 
 	//Funzioni sulla velocità dei fantasmi :
 	void SetCurrentMovementSpeed(float NewSpeed);
 	float GetCurrentMovementSpeed();
+	float GetIncorporealGhostSpeed();
+	float GetGhostSpeed() const;
 	void SetSpeeds();
+
+	protected:
+
+		//La funzione che dal GateEntrance riporta ogni fantasma alla sua SpawnPosition (Ogni fantasma la definisce in modo diverso )
+		void EnterHouse();
+
+	
 	
 	//Controlla se il fantasma si trova in uno dei due tunnel 
-	void TunnelCheck();
+	void GhostSpeedCheck();
 	//Controlla che il fantasma sia ad un'incrocio
 	bool CrossingDetection();
 
 	//Sceglie la nuova direzione da percorrere in base a WhereImGoing
 	FVector ChoseNewDirection();
+
+	//Sceglie la nuova direzione casualmente (Viene usato in FRIGHTENED)
+	FVector ChoseNewRandomDirection();
 
 	//Le funzioni da Pawn
 	void HandleMovement();
@@ -173,8 +205,13 @@ protected:
 	void SetNextNode(ABaseNode* Node);
 	void SetNodeGeneric(const FVector Dir);
 	void Eat();
+	public:
+		void SetLastNode(ABaseNode* Node);
+		void ResetAllPhantomNodes();
 
-protected:
+	protected:
+
+
 
 	UPROPERTY(VisibleAnywhere)
 		class AMyGameMode* GameMode;
@@ -197,7 +234,8 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	virtual UStaticMeshComponent* GetStaticMeshComponent() const;
+	virtual void SetStaticMeshComponent(UStaticMeshComponent* NewMesh);
 
 private: 
 	static class DirectionAndDistance {

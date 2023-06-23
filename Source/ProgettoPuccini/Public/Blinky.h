@@ -25,13 +25,18 @@ public:
 	//L'attributo puntatore al Blueprint
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* StaticMeshComponent;
-
+	
+	/*UPROPERTY(EditAnywhere)
+	TArray<UStaticMeshComponent*> ArrayStaticMeshComponent ;
+	*/
+	UPROPERTY(EditAnywhere)
+		class AMyGameMode* TheGameMode;
 	UPROPERTY(EditAnywhere)
 		int32 BlinkyCounter;
 
 	void WhereAmIGoingUpdate() override;
     void LoadSpecialSpot() override ;
-
-
-
+	void GoToSpawnLocation() override;
+	UStaticMeshComponent* GetStaticMeshComponent()const override;
+	void SetStaticMeshComponent(UStaticMeshComponent* NewMesh) override ;
 };

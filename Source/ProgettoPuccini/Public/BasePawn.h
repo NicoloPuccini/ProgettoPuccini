@@ -9,6 +9,11 @@
 #include "GameFramework/Pawn.h"
 #include "BasePawn.generated.h"
 
+UENUM()
+enum EPacmanStatus {
+	DEFAULT UMETA(DisplayName = "NORMAL"),
+	ENERGIZED UMETA(DisplayName = "ENERGIZED")
+};
 
 
 UCLASS()
@@ -24,7 +29,20 @@ public:
 
 	//Dichiariamo metodi e Attributi :
 
+	//Serve a settare a null gli attributi LastNode NextNode TargetNode 
+	void ResetPacmanNodes();
+
+	void SetCurrentGridCoords(FVector2D Location);
+
+	//Controllo il timer PacmanEat
+	void CheckPacmanEatTimer();
+
+	//Setta le varie velocità che Pacman può assumere , viene chiamata nella BeginPlay
 	void SetPacmanSpeeds();
+
+	//Tutto quello che accade quando si mangia l' EnergyFood
+	//Viene chiamata dentro HandleFood
+	void BeginEnergizedMode();
 
 	void SetVerticalInput(float AxisValue);
 	void SetHorizontalInput(float AxisValue);
@@ -39,6 +57,24 @@ private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+
+
+public:
+	//Il timer che conta 4 secondi da quando pacman non mangia 
+	FTimerHandle PacmanEatTimer;
+	bool PacmanEatTimerEnd = true ;
+private:
+	//Serve a non far crushare tutto quando si vince 
+	bool CallOnWin = false;
+
+	//Il timer per l'EnergyMode
+	FTimerHandle PacmanEnergyModeTimer;
+
+	//Stato di Pacman 
+	UPROPERTY(EditAnywhere , Category = "Pacman Status")
+		TEnumAsByte<EPacmanStatus> PacmanCurrentStatus;
+
+	//Per il movimento 
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
 		FVector LastInputDirection;
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
@@ -79,8 +115,12 @@ private:
 	void SetTargetNode(ABaseNode* Node);
 	void SetNextNode(ABaseNode* Node);
 	void SetNodeGeneric(const FVector Dir);
+public:
+	void SetLastNode(ABaseNode* Node);
+private:
 	void Eat();
-protected:
+	void EatPhantom();
+
 	UPROPERTY(VisibleAnywhere)
 		class AMyGameMode* GameMode;
 

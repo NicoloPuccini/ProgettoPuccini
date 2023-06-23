@@ -30,7 +30,13 @@ private:
 
 	//Passo una reference del BasePawn
 	ABlinky* Blinky;
+
+	UPROPERTY(EditAnywhere)
+		class AMyGameMode* TheGameMode;
+
 public:
 	void WhereAmIGoingUpdate() override;
 	void LoadSpecialSpot() override;
+	void GoToSpawnLocation() override;
+
 };
