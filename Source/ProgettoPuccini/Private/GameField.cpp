@@ -109,7 +109,7 @@ static char FMap[MapSizeX][MapSizeY] = {
 	"#......##....##....##......#",
 	"######.##### ## #####.######",
 	"######.##### ## #####.######",
-	"######.##          ##.######",
+	"######.##     F    ##.######",
 	"######.## ######## ##.######",
 	"######.## #      # ##.######",
 	"      .   #      #   .      ",
@@ -199,13 +199,33 @@ void AGameField::GenerateFood()
 	}
 }
 
+
+FVector AGameField::GetFruitLocation() const
+{
+	return FruitLocation;
+}
+
+//Funzione che riporta tutti i food allo stato originale 
 void AGameField::RestoreAllEatenFood()
 {
-	//DEBUG:
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("RestoreAllEatenFood viene lanciata ")));
-	//Mando l'evento agli oggetti registrati
-	OnRestoreFoodEvent.Broadcast();
+
+	for (int x = 0; x < MapSizeX; x++)
+	{
+		for (int y = 0; y < MapSizeY - 1; y++)
+		{
+			FVector2D Location=FVector2D(x,y);
+			ABaseNode* Node = GetTileMAp()[Location];
+			ABaseFood* Food = GetFoodMAp()[Node];
+			
+			RestoreFood(Food);
+		}
+	}
 }
+
+
+
+
+
 
 ABaseNode* AGameField::SpawnNodeActorById(char CharId, FVector Position)
 {
@@ -324,11 +344,16 @@ ABaseNode* AGameField::SpawnNodeActorById(char CharId, FVector Position)
 	return Node;
 }
 
-ABaseFood* AGameField::SpawnFoodActorById(char CharId, FVector Position) const
+ABaseFood* AGameField::SpawnFoodActorById(char CharId, FVector Position) 
 {
 	ABaseFood* Food;
 	TSubclassOf<ABaseFood> ClassToSpawn = ABaseFood::StaticClass();
-
+	if (CharId == 'F')
+	{
+		ClassToSpawn = Fruit;
+		FruitLocation = Position;
+	}
+	else
 	if (CharId == '.')
 	{
 		ClassToSpawn = Foodie;
@@ -401,7 +426,10 @@ void AGameField::HideFood(ABaseFood* Food)
 //Funzione "inversa" della HideFood riporta il food sopra al GameField
 void AGameField::RestoreFood(ABaseFood* Food)
 {
-	
+
+	//DEBUG:
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("RestoreFood viene chiamata !")));
+
 	FVector NewFoodLocation = Food->GetActorLocation();
 	
 	//Controllo se l'asset è stato nasconsto andando a controllare la sua coordinata Z 

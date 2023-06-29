@@ -25,13 +25,13 @@ APhantomPawn::APhantomPawn()
 	PrimaryActorTick.bCanEverTick = true;
 	CurrentDirection = FVector(0, 0, 0);
 	////posizione iniziale  del pawn nelle coordinate di griglia 
-	CurrentGridCoords = FVector2D(0,0);
+	CurrentGridCoords = FVector2D(0, 0);
 	//// nodi
 	LastNode = nullptr;  //L'ultimo nodo in cui si è trovato il pawn
 	TargetNode = nullptr; //Il nodo in cui il pawn sta per spostarsi 
 	NextNode = nullptr; // Il prossimo nodo nella direzione in cui sta andando il Pawn
 
-	
+
 
 }
 
@@ -62,13 +62,13 @@ void APhantomPawn::ResetGhostCounter()
 
 void APhantomPawn::CheckGhostCounter()
 {
-	if (Mooveset == ATHOUSE) 
+	if (Mooveset == ATHOUSE)
 	{
-		if (GetGhostCounter() >= GhostCounterLimit) 
+		if (GetGhostCounter() >= GhostCounterLimit)
 		{
-	    //DEBUG:
-		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcuno sta per uscire di casa  !")));
-		Mooveset = EXITHOUSE;
+			//DEBUG:
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcuno sta per uscire di casa  !")));
+			Mooveset = EXITHOUSE;
 		}
 	}
 }
@@ -87,9 +87,9 @@ void APhantomPawn::ResetAllGhostCounter()
 void APhantomPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	 
-	
-	
+
+
+
 	// Debug : Verifica se il pawn è stato trovato(Funziona !)
 	/*
 	 if (Pacman)
@@ -115,12 +115,12 @@ void APhantomPawn::BeginPlay()
 	FVector2D StartNode = TheGridGen->GetXYPositionByRelativeLocation(GetActorLocation());
 	LastNode = TheGridGen->TileMap[StartNode];
 
-	
+
 	// Setto Direzione iniziale del fantasma e CurrentGridCoords
 	CurrentGridCoords = TheGridGen->GetXYPositionByRealLocation(GetActorLocation());
 	CurrentDirection = FVector(0, 0, 0);
 	LoadSpecialSpot();
-	
+
 }
 
 
@@ -132,7 +132,7 @@ TEnumAsByte<EPhantomStatus> APhantomPawn::GetGhostStatus()
 
 void APhantomPawn::SetGhostStatus(const TEnumAsByte<EPhantomStatus> Status)
 {
-	if (Status == SCATTER|| Status == FRIGHTENED)
+	if (Status == SCATTER || Status == FRIGHTENED)
 	{
 		DirectionInvercted = false;
 	}
@@ -150,9 +150,24 @@ void APhantomPawn::SetGhostMooveset(const TEnumAsByte<EMooveset> Behavior)
 }
 
 
+void APhantomPawn::SetGhostBlue()
+{
+	FRotator NewRotation = FRotator(180.0f, 0.0f, 0.0f);
+	SetActorRotation(NewRotation);
+
+
+}
+
+void APhantomPawn::SetGhostNonBlue()
+{
+	FRotator NewRotation = FRotator(0.0f, 0.0f, 0.0f);
+	SetActorRotation(NewRotation);
+}
+
+
 
 //E' una funzione che uso per settare alcuni attributi dentro ai fantasmi
-void APhantomPawn::LoadSpecialSpot() 
+void APhantomPawn::LoadSpecialSpot()
 {
 
 }
@@ -257,7 +272,7 @@ void APhantomPawn::HandleMovement()
 
 			if (CurrentGridCoords == GateEntry)
 			{
-				
+
 
 				EnterHouse();
 
@@ -275,9 +290,9 @@ void APhantomPawn::HandleMovement()
 				SetNodeGeneric(CurrentDirection);
 
 			}
-			else 
+			else
 			{
-				if (CurrentGridCoords == FVector2D( GateEntry.X - 2, GateEntry.Y )|| CurrentGridCoords == FVector2D(GateEntry.X-1, GateEntry.Y)) 
+				if (CurrentGridCoords == FVector2D(GateEntry.X - 2, GateEntry.Y) || CurrentGridCoords == FVector2D(GateEntry.X - 1, GateEntry.Y))
 				{
 					//Il fantasmino deve solo scendere di due tile e poi è a casa 
 					FVector DownDirection = FVector(-1, 0, 0);
@@ -286,13 +301,13 @@ void APhantomPawn::HandleMovement()
 
 
 				}
-				else 
+				else
 				{
-				//Sono dentro la casa non mi resta che far tornare i fantasmini alla loro spawnPosition :
+					//Sono dentro la casa non mi resta che far tornare i fantasmini alla loro spawnPosition :
 
 					GoToSpawnLocation();
 				}
-			
+
 			}
 		}
 
@@ -397,37 +412,37 @@ void APhantomPawn::MoveToCurrentTargetNode()
 
 
 //----------------------------------------------------Phantom EAT ---------------------------------------------------------------------------------
-void APhantomPawn::Eat() 
+void APhantomPawn::Eat()
 {
-	
+
 	if (TargetNode == nullptr) return;
 	//Se i fantasmi sono in SCATTER o In CHASE Possono mangiare pacman
 	if (GhostStatus == CHASE || GhostStatus == SCATTER)
 	{
 		//Prendo la posizione di Pacman 
-		if ( Pacman->GetGridPosition() == CurrentGridCoords)
+		if (Pacman->GetGridPosition() == CurrentGridCoords)
 		{
 			//DEBUG:
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT(" Pacman e' stato mangiato ")));
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT(" Pacman e' stato mangiato ")));
 			GameMode->GameInstance->DecrementCurrentLives();
-			
+
 			//Controllo il numero di righe vite di pacman per vedere se sono 0
-			if (GameMode->GameInstance->GetCurrentLives() < 0) 
-			{
-			//Decreto il GameOver
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT(" GAME-OVER ")));
-				GameMode->OnGameOver();
-			}
-			else 
+			if (GameMode->GameInstance->GetCurrentLives() < 0)
 			{
 				//Decreto il GameOver
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Pacman viene mangiato e perde una vita")));
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT(" GAME-OVER ")));
+				GameMode->OnGameOver();
+			}
+			else
+			{
+				//Decreto il GameOver
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Pacman viene mangiato e perde una vita")));
 				GameMode->OnPacmanLoseLife();
 			}
-			
+
 		}
 	}
-	
+
 }
 
 void APhantomPawn::SetLastNode(ABaseNode* Node)
@@ -452,9 +467,9 @@ void APhantomPawn::ResetAllPhantomNodes()
 void APhantomPawn::OnNodeReached()
 {
 
-	if (GetGhostStatus() == SCATTER|| GetGhostStatus() == FRIGHTENED)
+	if (GetGhostStatus() == SCATTER || GetGhostStatus() == FRIGHTENED)
 	{
-		if(!DirectionInvercted)
+		if (!DirectionInvercted)
 		{
 			//Inverto la direzione la prima volta che entro in un nodo in modalità scatter
 			CurrentDirection = CurrentDirection * -1;
@@ -462,15 +477,15 @@ void APhantomPawn::OnNodeReached()
 			DirectionInvercted = true;
 		}
 	}
-	
+
 	//Aggiorna gli attributi del Pawn di conseguenza
 	CurrentGridCoords = TargetNode->GetGridPosition();
 	LastNode = TargetNode;
 	SetTargetNode(nullptr);
 	//--------------------------------------------------------Tunnel Node (riduci la velocità del fantasma)--------------------------------------------------
-	
+
 	GhostSpeedCheck();
-	
+
 
 
 	//---------------------------------------------------------Teleport Sinistro-------------------------------------------------------------------------------
@@ -496,7 +511,7 @@ void APhantomPawn::OnNodeReached()
 		const FVector Location(TheGridGen->GetLeftTeleportLocation());
 		SetActorLocation(Location);
 		//Aggiorno gli attributi del Pawn di conseguenza
-		CurrentGridCoords = LeftTeleportGridPosition ;
+		CurrentGridCoords = LeftTeleportGridPosition;
 
 	}
 }
@@ -525,7 +540,7 @@ void APhantomPawn::SetNodeGeneric(const FVector Dir)
 	if (TheGridGen->IsNodeValidForWalk(Node))
 	{
 		SetTargetNode(Node);
-		
+
 	}
 }
 
@@ -534,7 +549,7 @@ void APhantomPawn::SetNodeGeneric(const FVector Dir)
 
 FVector2D APhantomPawn::CheckPacmanGridPosition()
 {
-   FVector2D PacmanGridPosition = Pacman->GetGridPosition();
+	FVector2D PacmanGridPosition = Pacman->GetGridPosition();
 	return PacmanGridPosition;
 }
 
@@ -601,27 +616,27 @@ void APhantomPawn::GhostSpeedCheck()
 		SetCurrentMovementSpeed(IncorporealGhostSpeed);
 	}
 	else
-	if(IsInTheTunnel)
-	{
-		SetCurrentMovementSpeed(GhostTunnelSpeed);
-	}
-	else
-	{
-		if (GhostStatus == SCATTER || GhostStatus == CHASE)
+		if (IsInTheTunnel)
 		{
-			SetCurrentMovementSpeed(GhostSpeed);
+			SetCurrentMovementSpeed(GhostTunnelSpeed);
 		}
-		//Il fantasma è in Fright
-		else if(GhostStatus == FRIGHTENED)
+		else
 		{
-			SetCurrentMovementSpeed(FrightGhostSpeed);
+			if (GhostStatus == SCATTER || GhostStatus == CHASE)
+			{
+				SetCurrentMovementSpeed(GhostSpeed);
+			}
+			//Il fantasma è in Fright
+			else if (GhostStatus == FRIGHTENED)
+			{
+				SetCurrentMovementSpeed(FrightGhostSpeed);
+			}
+			else
+			{
+				//DEBUG:
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Errore : GhostSpeedCheck non riconosce il PhantomStatus")));
+			}
 		}
-		else 
-		{
-			//DEBUG:
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Errore : GhostSpeedCheck non riconosce il PhantomStatus")));
-		}
-	}
 	//DEBUG:
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("CurrentGhostSpeed: %f "), CurrentMovementSpeed));
 }
@@ -640,14 +655,14 @@ bool APhantomPawn::CrossingDetection()
 			//Prendo il prossimo nodo in quella direzione 
 			auto Node = GameMode->GField->GetNextNode(CurrentGridCoords, PossibleDir);
 			//Verifico che il nodo sia walkable 
-			if (GameMode->GField->IsNodeValidForWalk(Node)) 
+			if (GameMode->GField->IsNodeValidForWalk(Node))
 			{
 				count = count + 1;
 			}
 		}
 	}
 	if (count != 0) { return true; }
-	return false ;
+	return false;
 }
 void APhantomPawn::SetSpeeds()
 {
@@ -665,21 +680,21 @@ void APhantomPawn::SetSpeeds()
 		//DEBUG:
 		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("SetSpeeds: GhostTunnelSpeed=%f,  GhostSpeed=%f,  FrightGhostSpeed=%f "), GhostTunnelSpeed, GhostSpeed, FrightGhostSpeed));
 	}
-	else if (CurrentLevel > 1 && CurrentLevel < 5) 
+	else if (CurrentLevel > 1 && CurrentLevel < 5)
 	{
 		GhostTunnelSpeed = (45.0f / 100.0f) * StandardSpeed;
 		GhostSpeed = (85.0f / 100.0f) * StandardSpeed;
 		FrightGhostSpeed = (55.0f / 100.0f) * StandardSpeed;
 	}
-	else if (CurrentLevel > 4 ) 
+	else if (CurrentLevel > 4)
 	{
 		GhostTunnelSpeed = (50.0f / 100.0f) * StandardSpeed;
 		GhostSpeed = (95.0f / 100.0f) * StandardSpeed;
 		FrightGhostSpeed = (60.0f / 100.0f) * StandardSpeed;
 	}
-	
 
-	}
+
+}
 //<----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 FVector  APhantomPawn::From2To3SizeVector(FVector2D input)
@@ -697,32 +712,32 @@ FVector  APhantomPawn::From2To3SizeVector(FVector2D input)
 //-------------------------------------------------------------ChoseNewDirection-----------------------------------------------------------------------------------------------
 FVector APhantomPawn::ChoseNewDirection()
 {
-	
+
 
 	//Definisco un vettore che conterrà le coppie direzione e distanza 
-	TArray<APhantomPawn::DirectionAndDistance> DirectionAndDistanceVector ;
-	
+	TArray<APhantomPawn::DirectionAndDistance> DirectionAndDistanceVector;
+
 	FVector AllDir[] = { FVector(0,1,0),FVector(1,0,0), FVector(0,-1,0),FVector(-1,0,0) };
 	float Min = std::numeric_limits<float>::max();// Prendo il massimo numero contenuto in un float 
 	//DEBUG:
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Minimo iniziale che dovrebbe essere il massimo contenibile in un float =%f  "),Min));
 	for (FVector PossibleDir : AllDir) {
 		//Escludo la direzione opposta all'attuale del fantasma (visto che non possono fare dietrofront )
-		if ( PossibleDir != CurrentDirection * (-1))
+		if (PossibleDir != CurrentDirection * (-1))
 		{
 			//Prendo il prossimo nodo in quella direzione 
 			auto Node = GameMode->GField->GetNextNode(CurrentGridCoords, PossibleDir);
 			//Verifico che il nodo sia walkable 
 			if (GameMode->GField->IsNodeValidForWalk(Node))
 			{
-			  //Calcolo la distanza fra il nodo e WhereImGoing 
-				const float Dist = FMath::Abs(FVector::Dist2D(From2To3SizeVector(Node->GetGridPosition()), From2To3SizeVector(GetWhereImGoing()))); 
-			//Mi calcolo il minimo fra le distanze 
-				if (Dist < Min) 
+				//Calcolo la distanza fra il nodo e WhereImGoing 
+				const float Dist = FMath::Abs(FVector::Dist2D(From2To3SizeVector(Node->GetGridPosition()), From2To3SizeVector(GetWhereImGoing())));
+				//Mi calcolo il minimo fra le distanze 
+				if (Dist < Min)
 				{
 					Min = Dist;
 				}
-			
+
 				//Aggiung0 l'istanza di struct al vector 
 				APhantomPawn::DirectionAndDistance VAndF;
 				VAndF.Direction = PossibleDir;
@@ -731,19 +746,19 @@ FVector APhantomPawn::ChoseNewDirection()
 			}
 		}
 	}
-	
+
 	//Aggiungo a  CandidateDirectionVector le direzioni con Distanza uguale al minimo 
 	TArray<FVector> CandidateDirectionVector;
 	for (const auto& element : DirectionAndDistanceVector)
 	{
-		
+
 		if (element.Distance == Min)
 		{
 			CandidateDirectionVector.Add(element.Direction);
 		}
 	}
 	//Ora vado a scegliere la direzione fra quelle in CandidateDirectionVector dando la precedenza a su poi sinistra , giu , destra 
-	for (const auto& element : CandidateDirectionVector) 
+	for (const auto& element : CandidateDirectionVector)
 	{
 		//Se è su
 		if (element == FVector(1, 0, 0)) { return(element); }
@@ -766,7 +781,7 @@ FVector APhantomPawn::ChoseNewDirection()
 	//DEBUG:
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("Qualcosa è andato storto nell'algoritmo di scelta della direzione del fansma:PhantoPawn riga ChoseNewDirection ")));
 	return FVector(0, 0, 0);
-	}
+}
 
 
 
@@ -841,7 +856,7 @@ FVector2D APhantomPawn::GetGridPosition() const
 
 void APhantomPawn::SetGridPosition(FVector2D Location)
 {
-	CurrentGridCoords=Location;
+	CurrentGridCoords = Location;
 }
 
 void APhantomPawn::SetCurrentDirection(FVector Dir)

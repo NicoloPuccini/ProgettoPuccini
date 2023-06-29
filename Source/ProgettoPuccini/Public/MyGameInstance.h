@@ -16,13 +16,16 @@ class PROGETTOPUCCINI_API UMyGameInstance : public UGameInstance
 
 private:
 	UPROPERTY(EditAnywhere)
+		FString TurnMessage= " ";
+
+	UPROPERTY(EditAnywhere)
 		int32 Score = 0 ;
 
 	UPROPERTY(EditAnywhere)
-		int32 Lives = 200;
+		int32 Lives = 3;
 
 	UPROPERTY(EditAnywhere)
-	int32 CurrentLives=200;
+	int32 CurrentLives=3;
 
 	UPROPERTY(EditAnywhere)
 		int32 FoodieCounter = 239;
@@ -43,15 +46,24 @@ private:
 	
 public:
 
+	//funzioni per gestire i TurnMessage 
+	UFUNCTION(BlueprintCallable)
+	FString GetTurnMessage();
+
+	void SetTurnMessage(FString Message);
+	void ClearTurnMessage();
 
 	float GetStandardMovementSpeed() const;
 	//Funzioni per la gestione dei livelli :
-	int32 GetLevel()const;
+	UFUNCTION(BlueprintCallable)
+	int32 GetLevel();
+
 	void IncrementLevel();
 	void ResetLevel();
 
 	//Funzioni per la gestione delle vite 
-	int32 GetCurrentLives() const;
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentLives() ;
 	void DecrementCurrentLives();
 	void ResetLives();
 

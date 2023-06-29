@@ -22,6 +22,11 @@ void ABaseFood::BeginPlay()
 	
 }
 
+void ABaseFood::ShowFruit()
+{
+
+}
+
 void ABaseFood::HandleFood()
 {
 

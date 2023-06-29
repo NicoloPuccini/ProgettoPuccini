@@ -8,8 +8,6 @@
 #include "GameFramework/Actor.h"
 #include "GameField.generated.h"
 
-//DynamicMulticastDelegate
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRestoreFood);
 
 
 UCLASS()
@@ -162,13 +160,14 @@ private:
 	//Questo servirà per generare i EnergyFood
 	UPROPERTY(EditDefaultsOnly, Category = "Foods")
 		TSubclassOf<ABaseFood> EnergyFood;
-	//Questo servirà per generare i EnergyFood
+	//Questo servirà per generare i Fruit
 	UPROPERTY(EditDefaultsOnly, Category = "Foods")
-		TSubclassOf<ABaseFood> SuperFood;
+		TSubclassOf<ABaseFood> Fruit;
+
+	FVector FruitLocation;
 
 	public:
-		UPROPERTY(BlueprintAssignable)
-			FOnRestoreFood OnRestoreFoodEvent;
+		FVector GetFruitLocation() const;
 
 		void RestoreAllEatenFood();
 
@@ -182,7 +181,7 @@ private:
 	//Dichiariamo un metodo per spawnare i Nodi da usare dentro GenerateGrid
 	ABaseNode* SpawnNodeActorById(char CharId, FVector Position) ;
 	//Dichiaro un metodo per far spawnare i Food da usare dentro GenerateFood
-	ABaseFood* SpawnFoodActorById(char CharId, FVector Position) const;
+	ABaseFood* SpawnFoodActorById(char CharId, FVector Position) ;
 	//Dichiaro un metodo per generare la griglia di gioco Grid
 	void GenerateGrid();
 	void GenerateFood();

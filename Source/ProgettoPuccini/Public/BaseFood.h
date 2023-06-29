@@ -18,6 +18,8 @@ public:
 	// Sets default values for this actor's properties
 	ABaseFood();
 
+	//Viene implementata solo in Fruit 
+	virtual void ShowFruit();
 	//La funzione che verrà overload da tutti i food pe capire quali sono fodie e quali energyFood per decrementare il FoodieCounter
 	virtual void HandleFood();
 	

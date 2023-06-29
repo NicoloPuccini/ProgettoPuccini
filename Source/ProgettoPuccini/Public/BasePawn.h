@@ -62,16 +62,15 @@ private:
 public:
 	//Il timer che conta 4 secondi da quando pacman non mangia 
 	FTimerHandle PacmanEatTimer;
-	bool PacmanEatTimerEnd = true ;
+	bool PacmanEatTimerEnd = true;
+	//Il timer per l'EnergyMode
+	FTimerHandle PacmanEnergyModeTimer;
 private:
 	//Serve a non far crushare tutto quando si vince 
 	bool CallOnWin = false;
 
-	//Il timer per l'EnergyMode
-	FTimerHandle PacmanEnergyModeTimer;
-
 	//Stato di Pacman 
-	UPROPERTY(EditAnywhere , Category = "Pacman Status")
+	UPROPERTY(EditAnywhere, Category = "Pacman Status")
 		TEnumAsByte<EPacmanStatus> PacmanCurrentStatus;
 
 	//Per il movimento 
@@ -126,7 +125,7 @@ private:
 
 	//Passo una reference della GameInstance
 	UPROPERTY(VisibleAnywhere)
-	UMyGameInstance* GameInstance;
+		UMyGameInstance* GameInstance;
 
 	UPROPERTY(VisibleAnywhere)
 		AGameField* TheGridGen;

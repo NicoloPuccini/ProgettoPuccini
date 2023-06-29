@@ -15,12 +15,27 @@ void UMyGameInstance::ResetScore()
 
 
 
+FString UMyGameInstance::GetTurnMessage()
+{
+	return TurnMessage;
+}
+
+void UMyGameInstance::SetTurnMessage(FString Message)
+{
+	TurnMessage = Message;
+}
+
+void UMyGameInstance::ClearTurnMessage()
+{
+	TurnMessage = " ";
+}
+
 float UMyGameInstance::GetStandardMovementSpeed() const
 {
 	return StandardMovementSpeed ;
 }
 
-int32 UMyGameInstance::GetLevel() const
+int32 UMyGameInstance::GetLevel() 
 {
 	return CurrentLevel;
 }
@@ -37,7 +52,7 @@ void UMyGameInstance::ResetLevel()
 
 
 
-int32 UMyGameInstance::GetCurrentLives() const
+int32 UMyGameInstance::GetCurrentLives() 
 {
 	return CurrentLives;
 }

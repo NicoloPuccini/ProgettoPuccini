@@ -21,13 +21,13 @@ enum EPhantomStatus {
 };
 
 UENUM()
-enum  EMooveset {    
-	
+enum  EMooveset {
+
 	NORMAL UMETA(DisplayName = "NORMAL"),
 	ATHOUSE UMETA(DisplayName = "ATHOUSE"),
 	EXITHOUSE UMETA(DisplayName = "EXITHOUSE"),
 	GOTOHOUSE  UMETA(DisplayName = "GOTOHOUSE")
-	
+
 };
 
 
@@ -47,7 +47,7 @@ public:
 
 
 	//Funzioni che gestiscono i contatori dei fantasmini (Ogni fantasmino la impementa in modo diverso )
-	virtual int32 GetGhostCounter() ;
+	virtual int32 GetGhostCounter();
 	virtual void IncrementGhostCounter();
 	virtual void ResetGhostCounter();
 	void CheckGhostCounter();
@@ -58,22 +58,24 @@ public:
 	void SetGhostStatus(const TEnumAsByte<EPhantomStatus> Status);
 
 	// Funzioni sul Mooveset dei fantasmi
-		TEnumAsByte<EMooveset> GetGhostMooveset();
+	TEnumAsByte<EMooveset> GetGhostMooveset();
 	void SetGhostMooveset(const TEnumAsByte<EMooveset>  Behavior);
 
-
+	//Funzione che fa diventare i fantasmi Blu
+	void SetGhostBlue();
+	void SetGhostNonBlue();
 	//Funzione che carica alcuni attributi dentro i fantasmi 
-	  virtual void LoadSpecialSpot();
+	virtual void LoadSpecialSpot();
 
-	  //Serve a tenere nota della posizione di Pacman e a far muovere i fantasmi di conseguenza 
-	  FVector2D CheckPacmanGridPosition();
-	  FVector CheckPacmanDirection();
+	//Serve a tenere nota della posizione di Pacman e a far muovere i fantasmi di conseguenza 
+	FVector2D CheckPacmanGridPosition();
+	FVector CheckPacmanDirection();
 
-	  //Questa è la funzione che aggiorna WhereAmIGoing tutte le volte che sono ad un incrocio (Ogni fantasma la definisce in modo diverso )
-	  virtual void WhereAmIGoingUpdate();
-	  //Questa funzione fa tornare ogni fantasma nella sua Spawn location (Ad eccezione di blinky )(Ogni fantasma la definisce in modo diverso )
-	 virtual void  GoToSpawnLocation();
-	 
+	//Questa è la funzione che aggiorna WhereAmIGoing tutte le volte che sono ad un incrocio (Ogni fantasma la definisce in modo diverso )
+	virtual void WhereAmIGoingUpdate();
+	//Questa funzione fa tornare ogni fantasma nella sua Spawn location (Ad eccezione di blinky )(Ogni fantasma la definisce in modo diverso )
+	virtual void  GoToSpawnLocation();
+
 
 	//Dichiariamo metodi e Attributi :
 
@@ -93,10 +95,10 @@ public:
 	FVector2D GetGridPosition() const;
 	void SetGridPosition(FVector2D Location);
 
-	
+
 protected:
 
-	
+
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -107,20 +109,20 @@ protected:
 		FVector CurrentDirection;
 	//La direzione che seguono i fantasmi quando sono dentro la casa 
 	UPROPERTY(VisibleAnywhere, Category = "Movement")
-	    FVector HouseDirection;
+		FVector HouseDirection;
 	void SetCurrentDirection(FVector Dir);
 
 	//Velocità dei ghost
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float CurrentMovementSpeed = 400.0f;
 	UPROPERTY(EditAnywhere, Category = "Movement")
-		float GhostTunnelSpeed ;
+		float GhostTunnelSpeed;
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float GhostSpeed;
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float FrightGhostSpeed;
 	UPROPERTY(EditAnywhere, Category = "Movement")
-		float IncorporealGhostSpeed= 1000.0f;
+		float IncorporealGhostSpeed = 1000.0f;
 
 
 
@@ -132,7 +134,7 @@ protected:
 		FVector2D CurrentGridCoords;
 
 	//Stato del fantasma : Scatter,Chase,Frightened
-	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category = "Phantom")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Phantom")
 		TEnumAsByte<EPhantomStatus> GhostStatus;
 	//Mooveset del fantasma : NORMAL , INHOUSE , EXITHOUSE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Phantom")
@@ -144,7 +146,7 @@ protected:
 
 	//Serve a tenere conto della prima volta che reggiugi un nodo in modalità scatter per invertire la direzione solo la prima volta 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Phantom")
-		bool DirectionInvercted=false;
+		bool DirectionInvercted = false;
 
 
 	UPROPERTY(VisibleAnywhere, Category = "Nodes")
@@ -156,21 +158,21 @@ protected:
 
 	//Sarà il nodo che il fantasma cercherà di raggiungere inseguendo Pacman , Cambia durante la partita (Sulla Griglia)
 	UPROPERTY(VisibleAnywhere, Category = "Phantom")
-		FVector2D WhereImGoing ;
+		FVector2D WhereImGoing;
 
 	//La posiione del nodo che i fantasmini cercano di raggiungere quando sono in modalità scatter, è fissa , ma cambia da fantasma a fantasma (Sulla Griglia)
 	UPROPERTY(VisibleAnywhere, Category = "Phantom")
-		 FVector2D SpecialSpotPosition;
+		FVector2D SpecialSpotPosition;
 
 	//Serve a tener conto se il fantasma è sul terreno di casa o meno 
 	UPROPERTY(VisibleAnywhere, Category = "Phantom")
-		bool InGhostHome=false;
+		bool InGhostHome = false;
 
 	//Le funzioni dei fantasmi :
 
 
-	
-	public:
+
+public:
 
 	//Funzioni sulla velocità dei fantasmi :
 	void SetCurrentMovementSpeed(float NewSpeed);
@@ -179,13 +181,13 @@ protected:
 	float GetGhostSpeed() const;
 	void SetSpeeds();
 
-	protected:
+protected:
 
-		//La funzione che dal GateEntrance riporta ogni fantasma alla sua SpawnPosition (Ogni fantasma la definisce in modo diverso )
-		void EnterHouse();
+	//La funzione che dal GateEntrance riporta ogni fantasma alla sua SpawnPosition (Ogni fantasma la definisce in modo diverso )
+	void EnterHouse();
 
-	
-	
+
+
 	//Controlla se il fantasma si trova in uno dei due tunnel 
 	void GhostSpeedCheck();
 	//Controlla che il fantasma sia ad un'incrocio
@@ -205,11 +207,11 @@ protected:
 	void SetNextNode(ABaseNode* Node);
 	void SetNodeGeneric(const FVector Dir);
 	void Eat();
-	public:
-		void SetLastNode(ABaseNode* Node);
-		void ResetAllPhantomNodes();
+public:
+	void SetLastNode(ABaseNode* Node);
+	void ResetAllPhantomNodes();
 
-	protected:
+protected:
 
 
 
@@ -218,7 +220,7 @@ protected:
 
 	//Passo una reference della GameInstance
 	UPROPERTY(VisibleAnywhere)
-	UMyGameInstance* GameInstance;
+		UMyGameInstance* GameInstance;
 
 
 	UPROPERTY(VisibleAnywhere)
@@ -226,18 +228,18 @@ protected:
 
 	//Passo una reference del BasePawn
 	UPROPERTY(VisibleAnywhere)
-	ABasePawn* Pacman;
+		ABasePawn* Pacman;
 
 
 public:
-	
+
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual UStaticMeshComponent* GetStaticMeshComponent() const;
 	virtual void SetStaticMeshComponent(UStaticMeshComponent* NewMesh);
 
-private: 
+private:
 	static class DirectionAndDistance {
 	public:
 		FVector Direction;

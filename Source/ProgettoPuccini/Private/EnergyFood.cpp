@@ -19,11 +19,7 @@ AEnergyFood::AEnergyFood()
 	
 
 }
-void AEnergyFood::TestDelegate()
-{
-	//DEBUG:
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, FString::Printf(TEXT("TESTDELEGATE viene lanciata ")));
-}
+
 void AEnergyFood::BeginPlay()
 {
 	
@@ -43,8 +39,6 @@ void AEnergyFood::HandleFood()
 	//Do inizio alla EnergizedMode dove pacman è più veloce e può mangiare i fantasmi Frightened 
 	PacmanPawn->BeginEnergizedMode();
 
-	//Registro questo ffod per essere resumato 
-	//GameMode->GField->OnRestoreFoodEvent.AddDynamic(this, &AEnergyFood::TestDelegate);
 }
 
 

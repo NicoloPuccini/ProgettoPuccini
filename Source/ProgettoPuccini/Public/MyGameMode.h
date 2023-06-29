@@ -37,9 +37,6 @@ public:
 		ABasePawn* Pacman;
 
 
-	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<APhantomPawn> FrightGhostClass;
-	// reference to a GameField object
 
 
 
@@ -75,6 +72,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Chase Scatter ")
 		TEnumAsByte<EPhantomStatus> ChaseScatterPeriod;
 
+	int32 Scatter_1Time = 0;
+	int32 Scatter_2Time = 0;
+	int32 Scatter_3Time = 0;
+	int32 Scatter_4Time = 0;
+	int32 Chase_1Time = 0;
+	int32 Chase_2Time = 0;
+	int32 Chase_3Time = 0;
+
+
 	FTimerHandle Scatter_1;
 	FTimerHandle Chase_1;
 	FTimerHandle Scatter_2;
@@ -84,21 +90,22 @@ public:
 	FTimerHandle Scatter_4;
 
 
-			//Dichiarazione del metodo costruttore della MyGameMode
+	//Dichiarazione del metodo costruttore della MyGameMode
 	AMyGameMode();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	void GameStart();
 	void ReturnAllPawnToSpawnLocations();
-	
+
 private:
 	void StartChaseScatterTimers();
 	void ClearAllChaseScatterTimers();
 	void SetInitialBehavior();
 	void LoadInitialGhostCounterLimit();
+	void LoadChaseScatterTimes();
 public:
- 	void LoadGhostCounterLimit();
+	void LoadGhostCounterLimit();
 	void OnWin();
 	void OnGameOver();
 	void OnPacmanLoseLife();
